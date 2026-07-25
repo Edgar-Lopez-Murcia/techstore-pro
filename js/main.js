@@ -147,45 +147,51 @@ if (formulario) {  // solo corre en contacto.html donde existe el formulario
 const productos = [
   {
     id: 1,
-    nombre: "✏️ Nombre de tu producto 1",
-    descripcion: "✏️ Descripción corta de este producto.",
-    precio: "✏️ $XX.000",
-    imagen: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=250&fit=crop"
+    icono: "💻",
+    nombre: "MacBook Pro M3",
+    descripcion: "Chip M3, 16 GB RAM, 512 GB SSD, pantalla Liquid Retina.",
+    precio: "$8.999.000",
+    imagen: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400&h=250&fit=crop&q=80"
   },
   {
     id: 2,
-    nombre: "✏️ Nombre de tu producto 2",
-    descripcion: "✏️ Descripción corta de este producto.",
-    precio: "✏️ $XX.000",
-    imagen: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=250&fit=crop"
+    icono: "📱",
+    nombre: "iPhone 15 Pro",
+    descripcion: "Chip A17 Pro, titanio, Dynamic Island, cámara 48 MP.",
+    precio: "$4.299.000",
+    imagen: "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=400&h=250&fit=crop&q=80"
   },
   {
     id: 3,
-    nombre: "✏️ Nombre de tu producto 3",
-    descripcion: "✏️ Descripción corta de este producto.",
-    precio: "✏️ $XX.000",
-    imagen: "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=400&h=250&fit=crop"
+    icono: "🎮",
+    nombre: "RTX 4070 Super",
+    descripcion: "12 GB GDDR6X, DLSS 3, Ray Tracing. Gaming 4K fluido.",
+    precio: "$2.399.000",
+    imagen: "https://images.unsplash.com/photo-1591488320449-011701bb6704?w=400&h=250&fit=crop&q=80"
   },
   {
     id: 4,
-    nombre: "✏️ Nombre de tu producto 4",
-    descripcion: "✏️ Descripción corta de este producto.",
-    precio: "✏️ $XX.000",
-    imagen: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=250&fit=crop"
+    icono: "💼",
+    nombre: "Dell XPS 15",
+    descripcion: "Intel i7 13va gen, 32 GB RAM, pantalla OLED 4K.",
+    precio: "$6.799.000",
+    imagen: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&h=250&fit=crop&q=80"
   },
   {
     id: 5,
-    nombre: "✏️ Nombre de tu producto 5",
-    descripcion: "✏️ Descripción corta de este producto.",
-    precio: "✏️ $XX.000",
-    imagen: "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=400&h=250&fit=crop"
+    icono: "📲",
+    nombre: "Samsung Galaxy S24",
+    descripcion: "Snapdragon 8 Gen 3, IA Galaxy, cámara 200 MP.",
+    precio: "$3.199.000",
+    imagen: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=250&fit=crop&q=80"
   },
   {
     id: 6,
-    nombre: "✏️ Nombre de tu producto 6",
-    descripcion: "✏️ Descripción corta de este producto.",
-    precio: "✏️ $XX.000",
-    imagen: "https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=400&h=250&fit=crop"
+    icono: "🖥️",
+    nombre: "Monitor LG UltraWide 34\"",
+    descripcion: "Panel IPS curvo, 3440×1440, 144 Hz, HDR10.",
+    precio: "$1.899.000",
+    imagen: "https://www.lg.com/content/dam/channel/wcms/pa/images/monitors/34wr50qc-b/gallery/34WR50QC-B-MZ-04.jpg"
   }
 ];
 
@@ -194,10 +200,14 @@ const productos = [
 // Las clases .tarjeta .tarjeta-img etc. ya están definidas en styles.css
 function crearTarjeta(producto) {
   return `
-    <article class="tarjeta" data-id="${producto.id}">
-      <img src="${producto.imagen}"
-           alt="${producto.nombre}"
-           class="tarjeta-img">
+    <article class="tarjeta"
+      data-id="${producto.id}"
+      data-icono="${producto.icono || '📦'}"
+      data-nombre="${producto.nombre}"
+      data-desc="${producto.descripcion}"
+      data-precio="${producto.precio}">
+      <span class="badge-disponible">✓ Disponible</span>
+      <img src="${producto.imagen}" alt="${producto.nombre}" class="tarjeta-img">
       <div class="tarjeta-info">
         <h3 class="tarjeta-nombre">${producto.nombre}</h3>
         <p class="tarjeta-desc">${producto.descripcion}</p>
@@ -220,3 +230,109 @@ const gridTarjetas = document.querySelector('#grid-tarjetas');
 if (gridTarjetas) {  // ✏️ solo corre en páginas que tienen #grid-tarjetas
   gridTarjetas.innerHTML = productos.map(crearTarjeta).join('');
 }
+
+
+// ══════════════════════════════════════════════
+// EJERCICIO 1 · MODAL PRODUCTO
+// Solo en productos.html (donde existe #modal-producto)
+// ══════════════════════════════════════════════
+const modal = document.querySelector('#modal-producto');
+
+if (modal) {
+  const btnCerrar = document.querySelector('#modal-cerrar');
+  const botonesVerMas = document.querySelectorAll('.btn-accion');
+  
+  function abrirModal(tarjeta) {
+    document.querySelector('#modal-icono').textContent = tarjeta.dataset.icono || '📦';
+    document.querySelector('#modal-titulo').textContent = tarjeta.dataset.nombre || 'Producto';
+    document.querySelector('#modal-desc').textContent = tarjeta.dataset.des || '';
+    document.querySelector('#modal-precio').textContent = tarjeta.dataset.precio || '';
+    modal.classList.add('visible')
+  }
+
+  botonesVerMas.forEach(function(boton) {
+    boton.addEventListener('click', function() {
+      const tarjeta = boton.closest('.tarjeta');
+      abrirModal(tarjeta);
+    });
+  });
+
+  btnCerrar.addEventListener('click', function() {
+    modal.classList.remove('visible');
+  });
+  
+  modal.addEventListener('click', function(evento) {
+    if (evento.target === modal) {
+      modal.classList.remove('visible');
+    }
+  });
+
+  document.addEventListener('keydown', function(evento) {
+    if (evento.key === 'Escape') {
+      modal.classList.remove('visible');
+    }
+  });
+}
+
+// ══════════════════════════════════════════════
+// EJERCICIO 2 · BARRA DE PROGRESO SCROLL
+// Funciona en todas las páginas
+// ══════════════════════════════════════════════
+
+const barraScroll = document.querySelector('#barra-scroll');
+
+if (barraScroll) {
+  window.addEventListener('scroll', function() {
+    // scrollY = cuántos píxeles hemos bajado
+    // scrollHeight - innerHeight = total de píxeles posibles
+    const totalDesplazamiento = document.body.scrollHeight - window.innerHeight;
+    const porcentaje = (window.scrollY / totalDesplazamiento) * 100;
+    barraScroll.style.width = porcentaje + '%';
+  });
+}
+
+function crearTarjeta(producto) {
+  return `
+    <article class="tarjeta"
+      data-id="${producto.id}"
+      data-icono="${producto.icono || '📦'}"
+      data-nombre="${producto.nombre}"
+      data-desc="${producto.descripcion}"
+      data-precio="${producto.precio}">
+      <span class="badge-disponible">✓ Disponible</span>
+      <img src="${producto.imagen}" alt="${producto.nombre}" class="tarjeta-img">
+      <div class="tarjeta-info">
+        <h3 class="tarjeta-nombre">${producto.nombre}</h3>
+        <p class="tarjeta-desc">${producto.descripcion}</p>
+        <div class="tarjeta-pie">
+          <span class="tarjeta-precio">${producto.precio}</span>
+          <button class="btn-accion">Ver más</button>
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+
+// ══════════════════════════════════════════════
+// EJERCICIO 3 · BADGE HOVER EN TARJETAS
+// Solo en productos.html
+// ══════════════════════════════════════════════
+
+const todasLasTarjetas = document.querySelectorAll('.tarjeta');
+
+todasLasTarjetas.forEach(function(tarjeta) {
+  const badge = tarjeta.querySelector('.badge-disponible');
+
+  if (badge) {
+    // Mostrar badge al entrar el mouse
+    tarjeta.addEventListener('mouseover', function() {
+      badge.classList.add('visible');
+    });
+
+    // Ocultar badge al salir el mouse
+    tarjeta.addEventListener('mouseout', function() {
+      badge.classList.remove('visible');
+    });
+  }
+});
