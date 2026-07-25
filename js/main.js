@@ -191,7 +191,7 @@ const productos = [
     nombre: "Monitor LG UltraWide 34\"",
     descripcion: "Panel IPS curvo, 3440×1440, 144 Hz, HDR10.",
     precio: "$1.899.000",
-    imagen: "https://www.lg.com/content/dam/channel/wcms/pa/images/monitors/34wr50qc-b/gallery/34WR50QC-B-MZ-04.jpg"
+    imagen: "https://images.unsplash.com/photo-1586210579191-33b45e38fa2c?w=400&h=250&fit=crop&q=80"
   }
 ];
 
@@ -336,3 +336,21 @@ todasLasTarjetas.forEach(function(tarjeta) {
     });
   }
 });
+
+
+const buscador = document.querySelector('#buscador');
+
+if (buscador) {
+  buscador.addEventListener('input', function() {
+    const termino = buscador.value.toLowerCase();
+    
+    todasLasTarjetas.forEach(function(tarjeta) {
+      const nombre = tarjeta.dataset.nombre.toLowerCase();
+      if (nombre.includes(termino)) {
+        tarjeta.style.display = 'block';
+      } else {
+        tarjeta.style.display = 'none';
+      }
+    });
+  });
+}
