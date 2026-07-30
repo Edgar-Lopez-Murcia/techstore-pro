@@ -3,28 +3,49 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- ✏️ Cambia el título: "Productos | Mi Tienda" o "Servicios | Mi Empresa" -->
-  <title>Productos | TechStore Pro</title>
+  <!--
+    ✏️ PERSONALIZA: Cambia el título por el nombre de tu proyecto
+    Ejemplo: "Tienda La Cosecha | Inicio" o "Studio Foto Lima | Inicio"
+  -->
+  <title>TechStore Pro | Inicio</title>
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
   <!-- BARRA SCROLL — S06: div vacío, el CSS lo posiciona y el JS le da el ancho -->
   <div class="barra-scroll" id="barra-scroll"></div>
   <!-- ============================================================
-       HEADER — Igual en todas las páginas
-       Cambia class="activo" al enlace "Productos"
+       HEADER — Copia este bloque IGUAL en todas las páginas
+       Solo cambia el class="activo" al enlace de la página actual
        ============================================================ -->
   <header class="header">
     <div class="header-logo">
+      <!--
+        ✏️ Opción A: Logo con imagen
+        <img src="img/logo.png" alt="Logo mi proyecto" class="logo-img">
+        ✏️ Opción B: Solo texto (más fácil para empezar)
+      -->
       <span class="logo-icono">💻</span>
       <span class="logo-texto">TechStore Pro</span>
     </div>
+
+    <!-- Botón hamburguesa — JavaScript lo activará en la próxima sesión -->
     <button id="menu-toggle" class="menu-toggle" aria-label="Abrir menú" aria-expanded="false">
-      <span></span><span></span><span></span>
+      <span></span>
+      <span></span>
+      <span></span>
     </button>
+
     <nav id="nav-menu" class="nav-menu">
-      <a href="index.html">Inicio</a>
-      <a href="productos.html" class="activo">Productos</a>
+      <!-- class="activo" va en el enlace de la página actual -->
+      <a href="index.html" class="activo">Inicio</a>
+      <!--
+        ✏️ Ajusta los nombres según tu proyecto:
+        - Tienda: "Productos", "Ofertas"
+        - Servicios: "Servicios", "Portafolio"
+        - Educación: "Cursos", "Instructores"
+        - Restaurante: "Menú", "Reservas"
+      -->
+      <a href="productos.html">Productos</a>
       <a href="nosotros.html">Nosotros</a>
       <a href="contacto.html">Contacto</a>
     </nav>
@@ -37,33 +58,30 @@
     </div>
   </header>
 
+  <!-- ============================================================
+       MAIN — Contenido único de esta página
+       ============================================================ -->
   <main>
-
-    <!-- --------------------------------------------------------
-         PAGE HEADER — Título de la página
-         -------------------------------------------------------- -->
-    <div class="page-header">
-      <p class="breadcrumb"><a href="index.html">Inicio</a> / Productos</p>
-      <h1>Catálogo de Productos</h1>
-      <p>Laptops, celulares y componentes al mejor precio. Envío a todo el Huila.</p>
-    </div>
-    <input type="text" id="buscador" placeholder="🔍 Buscar producto..." 
-       style="width:100%;padding:12px 16px;border:2px solid #e2e8f0;border-radius:10px;font-size:16px;margin-bottom:24px;">
-    <!-- --------------------------------------------------------
-         CATÁLOGO COMPLETO
-         id="grid-tarjetas" lo usará JavaScript para cargar
-         todos los productos desde un array de datos
-         -------------------------------------------------------- -->
-    <section class="seccion-tarjetas">
-      <div class="grid-tarjetas" id="grid-tarjetas">
-
-        
-      </div><!-- /grid-tarjetas -->
+    <section class="seccion-carrito" id="seccion-carrito">
+      <div class="seccion-header">
+        <h2>🛒 Mi carrito</h2>
+        <p id="carrito-resumen">Cargando...</p>
+      </div>
+    
+    <!-- ✏️ La lista de productos se genera con JavaScript -->
+      <div id="lista-carrito"></div>
+    
+    <!-- Botón para vaciar el carrito -->
+      <div class="carrito-acciones">
+        <button id="btn-vaciar" class="btn btn-secundario">🗑️ Vaciar carrito</button>
+        <a href="index.html" class="btn btn-primario">Seguir comprando</a>
+      </div>
     </section>
-
   </main>
 
-  <!-- Footer — igual en todas las páginas -->
+  <!-- ============================================================
+       FOOTER — Copia este bloque IGUAL en todas las páginas
+       ============================================================ -->
   <footer class="footer">
     <div class="footer-contenido">
       <div class="footer-marca">
@@ -89,19 +107,9 @@
       <p>&copy; 2026 TechStore Pro — Todos los derechos reservados</p>
     </div>
   </footer>
-<!-- MODAL PRODUCTO — S06 -->
-<div class="modal-overlay" id="modal-producto">
-  <div class="modal-caja">
-    <button class="modal-cerrar" id="modal-cerrar">×</button>
-    <div class="modal-icono" id="modal-icono">💻</div>
-    <h2 class="modal-titulo" id="modal-titulo">Nombre del producto</h2>
-    <p class="modal-desc" id="modal-desc">Descripción del producto</p>
-    <p class="modal-precio" id="modal-precio">$0</p>
-    <button class="modal-btn-carrito">🛒 Agregar al carrito</button>
-  </div>
-</div>
 
   <script src="js/main.js"></script>
+
 
 </body>
 </html>

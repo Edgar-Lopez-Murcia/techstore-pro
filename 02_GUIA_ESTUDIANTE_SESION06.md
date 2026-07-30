@@ -1,620 +1,552 @@
-# Guía del Aprendiz — Sesión S06 · Eventos y Event Listeners
+# Guía del Estudiante — Sesión 07
+## LocalStorage y Persistencia de Datos
 
-**Sesión:** S06 — Eventos y Event Listeners en TechStore Pro  
-**Fecha:** Sábado 25 de Julio de 2026  
-**Horario:** 6:30 PM – 10:30 PM  
-**Proyecto:** Tu réplica de TechStore Pro (el instructor construye en su proyecto — tú replicas en el tuyo)
-
----
-
-## ¿Qué vas a construir hoy?
-
-Al terminar esta sesión, tu proyecto tendrá 3 funcionalidades nuevas que no tenía antes:
-
-1. **Modal interactivo** — Cada botón "Ver más" abre un panel con información del producto. Se cierra con clic en ×, clic fuera o tecla Escape.
-2. **Barra de progreso scroll** — Una línea delgada en la parte superior que avanza mientras el usuario hace scroll.
-3. **Badge hover en tarjetas** — Un indicador "Disponible" que aparece cuando el mouse pasa por encima de una tarjeta.
-
-Todo va en `js/main.js`. El HTML no cambia (solo agregas el modal al final del body).
+**Competencia:** 220501096 — Construcción de Software  
+**Ficha:** 3229944 ADSO — Garzón, Huila  
+**Duración:** 4 horas  
+**Proyecto:** TechStore Pro (`C:\Users\[tu-usuario]\techstore-pro`)
 
 ---
 
-## Antes de empezar
+## Objetivos de aprendizaje
 
-Abre tu proyecto y verifica:
+Al finalizar la sesión serás capaz de:
 
-- [ ] `js/main.js` existe y tiene el código de S05 (menú hamburguesa, validación, tarjetas dinámicas)
-- [ ] El `<script src="js/main.js">` está en `index.html`, `productos.html`, `nosotros.html` y `contacto.html`
-- [ ] No hay errores en rojo en la consola (DevTools → Console)
+1. Explicar la diferencia entre datos en variables JS y datos en LocalStorage
+2. Usar los 4 métodos de LocalStorage: `setItem`, `getItem`, `removeItem`, `clear`
+3. Guardar y leer arrays de objetos usando `JSON.stringify` y `JSON.parse`
+4. Agregar persistencia real a TechStore Pro: tema oscuro + carrito de compras + badge del header
 
 ---
 
-### ¿Por qué las tarjetas las genera JavaScript y no están en el HTML?
+## Conceptos clave
 
-En S05 construiste en `main.js` un array `productos` con 6 objetos y una función `crearTarjeta` que convierte cada objeto en HTML. Al cargar la página, JavaScript llena el `<div id="grid-tarjetas">` con esas tarjetas automáticamente.
+### ¿Por qué los datos se pierden?
 
-Esto significa que las tarjetas **no deben estar escritas en el HTML** — las crea JavaScript en el momento que la página carga.
+Cuando escribes `let carrito = []` en JavaScript, ese array existe en la **memoria RAM** del navegador. Es temporal: en cuanto la página se recarga o se cierra, desaparece.
 
-**Antes de continuar debes limpiar `productos.html`.**
-
-Abre `productos.html` y busca el `<div class="grid-tarjetas" id="grid-tarjetas">`. Verás que tiene todos los `<article>` escritos ahí. Bórralos y deja el div vacío así:
-
-```html
-<div class="grid-tarjetas" id="grid-tarjetas">
-
-</div><!-- /grid-tarjetas -->
+```
+Variable JS:  Existe mientras la página está abierta → muere al recargar
+LocalStorage: Existe en el disco del navegador → sobrevive al cerrar Chrome
 ```
 
-Guarda el archivo y recarga `productos.html` en el navegador. Las 6 tarjetas deben seguir apareciendo — ahora generadas 100% por JavaScript.
+### ¿Qué es LocalStorage?
 
-> **¿Por qué esto importa para S06?** Los atributos `data-*` que necesita el modal hay que agregarlos en la función `crearTarjeta` de `main.js`, no en el HTML. Si dejas las tarjetas hardcodeadas en el HTML, el JS las pisa al cargar y los `data-*` que hayas puesto ahí desaparecen. Esto se resuelve en el Paso 3 del Ejercicio 1.
+Un espacio de almacenamiento que el navegador le da a cada sitio web. Piénsalo como un pequeño cajón con llave — solo `localhost:5500` puede abrir el cajón de `localhost:5500`.
+
+**Límites:**
+- ~5 MB por dominio (más que suficiente para cualquier proyecto del curso)
+- Solo guarda texto (strings)
+- No tiene fecha de expiración — persiste indefinidamente
+- No se comparte entre dominios ni entre navegadores
+
+### Los 4 métodos
+
+| Método | Qué hace | Ejemplo |
+|--------|----------|---------|
+| `setItem(clave, valor)` | Guarda o sobreescribe un dato | `localStorage.setItem('tema', 'oscuro')` |
+| `getItem(clave)` | Lee un dato (devuelve `null` si no existe) | `localStorage.getItem('tema')` |
+| `removeItem(clave)` | Borra un dato específico | `localStorage.removeItem('tema')` |
+| `clear()` | Borra todo lo del sitio | `localStorage.clear()` |
+
+### Guardar arrays y objetos — regla obligatoria
+
+LocalStorage solo acepta strings. Si intentas guardar un array directamente, lo convierte a `"[object Object]"` — inútil.
+
+**Solución: JSON.stringify al guardar, JSON.parse al leer**
+
+```javascript
+// Guardar un array
+const carrito = [{ id: 1, nombre: "MacBook Pro" }];
+localStorage.setItem('carrito', JSON.stringify(carrito));
+
+// Leer el array
+const texto = localStorage.getItem('carrito');
+const carritoLeido = JSON.parse(texto);
+console.log(carritoLeido[0].nombre); // "MacBook Pro"
+```
+
+**Regla fácil:** Si guardas → `stringify`. Si lees → `parse`.
 
 ---
 
-## Ejercicio 1 — Modal interactivo (productos.html)
+## Ejercicio 1: Tema oscuro persistente (45 min)
 
-### Paso 1 · Agregar el modal al HTML
+### Lo que vas a construir
 
-Abre `productos.html`. Justo antes del `<script src="js/main.js">`, agrega este bloque:
+Un botón en el header que alterna entre tema claro y oscuro. La preferencia se guarda en LocalStorage y se aplica automáticamente al recargar la página.
 
-> **¿Por qué antes del script?** El HTML se lee de arriba a abajo. Si el modal va después del `<script>`, JavaScript corre primero y cuando busca `#modal-producto` todavía no existe — devuelve `null` y el modal nunca funciona.
+### Paso 1 — Agrega el botón al header en `index.html`
+
+Abre `index.html`. Agrega el botón **después del `</nav>`**, antes del `</header>`. En diseño web el botón de tema siempre va en el extremo derecho, separado de la navegación:
 
 ```html
-<!-- MODAL PRODUCTO — S06 -->
-<div class="modal-overlay" id="modal-producto">
-  <div class="modal-caja">
-    <button class="modal-cerrar" id="modal-cerrar">×</button>
-    <div class="modal-icono" id="modal-icono">💻</div>
-    <h2 class="modal-titulo" id="modal-titulo">Nombre del producto</h2>
-    <p class="modal-desc" id="modal-desc">Descripción del producto</p>
-    <p class="modal-precio" id="modal-precio">$0</p>
-    <button class="modal-btn-carrito">🛒 Agregar al carrito</button>
-  </div>
-</div>
+    <nav id="nav-menu" class="nav-menu">
+      <a href="index.html" class="activo">Inicio</a>
+      <a href="productos.html">Productos</a>
+      <a href="nosotros.html">Nosotros</a>
+      <a href="contacto.html">Contacto</a>
+    </nav>
+    <!-- ✏️ S07: botón tema — extremo derecho, fuera del nav -->
+    <button id="btn-tema" class="btn-tema" aria-label="Cambiar tema">🌙</button>
+  </header>
 ```
 
-### Paso 2 · Agregar estilos del modal al CSS
+Haz lo mismo en `productos.html`, `nosotros.html` y `contacto.html` — el botón debe aparecer en todas las páginas.
 
-Abre `css/styles.css`. Al final del archivo agrega:
+### Paso 2 — Agrega los estilos en `css/styles.css`
+
+Abre `css/styles.css`. Ve al final del archivo (después del bloque `/* ── BADGE HOVER TARJETA · S06 ── */`) y agrega esto al final:
 
 ```css
-/* ── MODAL PRODUCTO · S06 ─────────────────────────── */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.55);
-  z-index: 500;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-}
+/* ===== S07: TEMA OSCURO ===== */
 
-.modal-overlay.visible {
-  display: flex;
-}
-
-.modal-caja {
-  background: #fff;
-  border-radius: 20px;
-  padding: 40px;
-  max-width: 400px;
-  width: 100%;
-  text-align: center;
-  position: relative;
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.18);
-}
-
-.modal-cerrar {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  background: #f1f5f9;
-  border: none;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  font-size: 18px;
-  font-weight: 700;
+/* Mismo padding que los links del nav — así queda alineado */
+.btn-tema {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 8px 12px;
   cursor: pointer;
-  color: #64748b;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.modal-icono {
-  font-size: 48px;
-  margin-bottom: 12px;
-}
-
-.modal-titulo {
-  font-size: 22px;
-  font-weight: 700;
-  margin-bottom: 8px;
-  color: #1a1a2e;
-}
-
-.modal-desc {
-  font-size: 14px;
-  color: #64748b;
-  margin-bottom: 12px;
-  line-height: 1.6;
-}
-
-.modal-precio {
-  font-size: 28px;
-  font-weight: 900;
-  color: #39a900;
-  margin-bottom: 20px;
-}
-
-.modal-btn-carrito {
-  background: #39a900;
-  color: #fff;
-  border: none;
-  padding: 14px 32px;
-  border-radius: 10px;
   font-size: 15px;
-  font-weight: 700;
-  cursor: pointer;
-  width: 100%;
+  color: white;
+  transition: background 0.2s, border-color 0.2s;
+  line-height: 1;
 }
 
-.modal-btn-carrito:hover {
-  background: #2d8400;
+.btn-tema:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
 }
+
+/* Variables del tema oscuro */
+body.tema-oscuro {
+  --color-fondo:       #0f172a;
+  --color-blanco:      #1e293b;
+  --color-texto:       #e2e8f0;
+  --color-texto-suave: #94a3b8;
+  --color-borde:       #334155;
+}
+
+body.tema-oscuro .seccion-header h2 { color: #f1f5f9; }
+
+body.tema-oscuro .tarjeta {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+body.tema-oscuro .tarjeta-nombre { color: #f1f5f9; }
+
+body.tema-oscuro .modal-caja  { background: #1e293b; color: #f1f5f9; }
+body.tema-oscuro .modal-titulo { color: #f1f5f9; }
+body.tema-oscuro .modal-desc   { color: #94a3b8; }
 ```
 
-### Paso 3 · Agregar los datos de producto a la función crearTarjeta (main.js)
+### Paso 3 — Agrega las funciones en `js/main.js`
 
-Como las tarjetas las genera JavaScript (no están escritas en el HTML), los atributos `data-*` hay que agregarlos en la función `crearTarjeta` de `main.js`, no en `productos.html`.
-
-Abre `js/main.js` y busca la función `crearTarjeta`. La tienes así de S05:
+Al final de `main.js`, agrega estas funciones:
 
 ```javascript
-function crearTarjeta(producto) {
-  return `
-    <article class="tarjeta" data-id="${producto.id}">
-      ...
-    </article>
-  `;
-}
-```
+// ===== S07: TEMA OSCURO =====
 
-Modifica el `<article>` para que incluya los atributos `data-icono`, `data-nombre`, `data-desc` y `data-precio`:
-
-```javascript
-function crearTarjeta(producto) {
-  return `
-    <article class="tarjeta"
-      data-id="${producto.id}"
-      data-icono="${producto.icono || '📦'}"
-      data-nombre="${producto.nombre}"
-      data-desc="${producto.descripcion}"
-      data-precio="${producto.precio}">
-      <img src="${producto.imagen}" alt="${producto.nombre}" class="tarjeta-img">
-      <div class="tarjeta-info">
-        <h3 class="tarjeta-nombre">${producto.nombre}</h3>
-        <p class="tarjeta-desc">${producto.descripcion}</p>
-        <div class="tarjeta-pie">
-          <span class="tarjeta-precio">${producto.precio}</span>
-          <button class="btn-accion">Ver más</button>
-        </div>
-      </div>
-    </article>
-  `;
-}
-```
-
-Ahora **reemplaza completamente** el array `productos` que tienes en `main.js` por este. El cambio es que se agrega la propiedad `icono` a cada objeto y se actualizan los datos reales de TechStore Pro:
-
-```javascript
-const productos = [
-  {
-    id: 1,
-    icono: "💻",
-    nombre: "MacBook Pro M3",
-    descripcion: "Chip M3, 16 GB RAM, 512 GB SSD, pantalla Liquid Retina.",
-    precio: "$8.999.000",
-    imagen: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400&h=250&fit=crop&q=80"
-  },
-  {
-    id: 2,
-    icono: "📱",
-    nombre: "iPhone 15 Pro",
-    descripcion: "Chip A17 Pro, titanio, Dynamic Island, cámara 48 MP.",
-    precio: "$4.299.000",
-    imagen: "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=400&h=250&fit=crop&q=80"
-  },
-  {
-    id: 3,
-    icono: "🎮",
-    nombre: "RTX 4070 Super",
-    descripcion: "12 GB GDDR6X, DLSS 3, Ray Tracing. Gaming 4K fluido.",
-    precio: "$2.399.000",
-    imagen: "https://images.unsplash.com/photo-1591488320449-011701bb6704?w=400&h=250&fit=crop&q=80"
-  },
-  {
-    id: 4,
-    icono: "💼",
-    nombre: "Dell XPS 15",
-    descripcion: "Intel i7 13va gen, 32 GB RAM, pantalla OLED 4K.",
-    precio: "$6.799.000",
-    imagen: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&h=250&fit=crop&q=80"
-  },
-  {
-    id: 5,
-    icono: "📲",
-    nombre: "Samsung Galaxy S24",
-    descripcion: "Snapdragon 8 Gen 3, IA Galaxy, cámara 200 MP.",
-    precio: "$3.199.000",
-    imagen: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=250&fit=crop&q=80"
-  },
-  {
-    id: 6,
-    icono: "🖥️",
-    nombre: "Monitor LG UltraWide 34\"",
-    descripcion: "Panel IPS curvo, 3440×1440, 144 Hz, HDR10.",
-    precio: "$1.899.000",
-    imagen: "https://images.unsplash.com/photo-1555618254-4d2b04e4b00d?w=400&h=250&fit=crop&q=80"
+// ✏️ COMPLETA: Lee el tema guardado en LocalStorage
+// Si existe, aplícalo al body. Si no existe, no hagas nada.
+function aplicarTemaGuardado() {
+  const tema = localStorage.getItem('tema');
+  if (tema === 'oscuro') {
+    document.body.classList.add('tema-oscuro');
+    const btn = document.getElementById('btn-tema');
+    if (btn) btn.textContent = '☀️'; // cambiar el ícono
   }
-];
-```
-
-> **¿Por qué esto funciona?** Cuando JavaScript genera cada `<article>` con los `data-*`, esos atributos quedan disponibles en el DOM. Luego el código del modal los lee con `tarjeta.dataset.nombre`, `tarjeta.dataset.precio`, etc.
-
-### Paso 4 · Escribir el JavaScript en main.js
-
-Abre `js/main.js`. Al final del archivo (después del código de S05), agrega:
-
-```javascript
-// ══════════════════════════════════════════════
-// EJERCICIO 1 · MODAL PRODUCTO
-// Solo en productos.html (donde existe #modal-producto)
-// ══════════════════════════════════════════════
-
-const modal = document.querySelector('#modal-producto');
-
-if (modal) {
-  const btnCerrar = document.querySelector('#modal-cerrar');
-  const botonesVerMas = document.querySelectorAll('.btn-accion');
-
-  // ✏️ Llenar el modal con los datos del producto
-  function abrirModal(tarjeta) {
-    document.querySelector('#modal-icono').textContent  = tarjeta.dataset.icono  || '📦';
-    document.querySelector('#modal-titulo').textContent = tarjeta.dataset.nombre || 'Producto';
-    document.querySelector('#modal-desc').textContent   = tarjeta.dataset.desc   || '';
-    document.querySelector('#modal-precio').textContent = tarjeta.dataset.precio || '';
-    modal.classList.add('visible');
-  }
-
-  // Cada botón "Ver más" abre el modal con los datos de su tarjeta
-  botonesVerMas.forEach(function(boton) {
-    boton.addEventListener('click', function() {
-      const tarjeta = boton.closest('.tarjeta');
-      abrirModal(tarjeta);
-    });
-  });
-
-  // Cerrar con el botón ×
-  btnCerrar.addEventListener('click', function() {
-    modal.classList.remove('visible');
-  });
-
-  // Cerrar al hacer clic fuera del modal
-  modal.addEventListener('click', function(evento) {
-    if (evento.target === modal) {
-      modal.classList.remove('visible');
-    }
-  });
-
-  // Cerrar con la tecla Escape
-  document.addEventListener('keydown', function(evento) {
-    if (evento.key === 'Escape') {
-      modal.classList.remove('visible');
-    }
-  });
 }
+
+// ✏️ COMPLETA: Alterna entre claro y oscuro y guarda la preferencia
+function toggleTema() {
+  const esOscuro = document.body.classList.toggle('tema-oscuro');
+  const btn = document.getElementById('btn-tema');
+  
+  if (esOscuro) {
+    localStorage.setItem('tema', 'oscuro');
+    if (btn) btn.textContent = '☀️';
+  } else {
+    localStorage.setItem('tema', 'claro');
+    if (btn) btn.textContent = '🌙';
+  }
+}
+
+// Conectar el botón y aplicar el tema al cargar
+const btnTema = document.getElementById('btn-tema');
+if (btnTema) {
+  btnTema.addEventListener('click', toggleTema);
+}
+
+aplicarTemaGuardado(); // ← ejecutar al cargar la página
 ```
 
-### Verificar ejercicio 1
+### Caso de prueba — Ejercicio 1
 
-- [ ] Abre `productos.html` en el navegador
-- [ ] Haz clic en "Ver más" de cualquier tarjeta → el modal se abre con el nombre y precio de esa tarjeta
-- [ ] Haz clic en el botón × → el modal se cierra
-- [ ] Haz clic fuera de la caja blanca del modal → se cierra
-- [ ] Presiona la tecla Escape → se cierra
-- [ ] Sin errores en rojo en la consola
+1. Recarga la página → tema claro (por defecto)
+2. Haz clic en el botón 🌙 → tema oscuro, ícono cambia a ☀️
+3. **Recarga la página** → debe seguir en tema oscuro ✓
+4. Abre DevTools → Application → Local Storage → verás `tema: "oscuro"` ✓
+5. Haz clic en ☀️ → vuelve a tema claro
+6. Recarga → tema claro ✓
 
 ---
 
-## Ejercicio 2 — Barra de progreso scroll
+## Ejercicio 2: Carrito de compras (55 min)
 
-Esta barra funciona en todas las páginas. El elemento HTML ya existe en todas (es el header que tienes) — solo necesitas el CSS y el JS.
+### Lo que vas a construir
 
-### Paso 1 · Agregar el elemento HTML en cada página
+Cuando el usuario hace clic en "🛒 Agregar al carrito" dentro del modal, el producto se guarda en LocalStorage. El carrito persiste al navegar entre páginas y al recargar.
 
-En **cada una** de tus 4 páginas (`index.html`, `productos.html`, `nosotros.html`, `contacto.html`), agrega esta línea **después del** `<body>` y **antes** del `<header>`:
+### Paso 1 — Agrega el badge al header
+
+En `index.html` **y** `productos.html`, **reemplaza** el `<button id="btn-tema">` suelto por este bloque que agrupa el botón y el badge, antes del `</header>`:
 
 ```html
-<!-- BARRA SCROLL — S06: div vacío, el CSS lo posiciona y el JS le da el ancho -->
-<div class="barra-scroll" id="barra-scroll"></div>
+    <div class="header-acciones">
+      <button id="btn-tema" class="btn-tema" aria-label="Cambiar tema">🌙</button>
+      <div class="carrito-badge-contenedor">
+        <span>🛒</span>
+        <span class="carrito-badge" id="carrito-badge">0</span>
+      </div>
+    </div>
+  </header>
 ```
 
-### Paso 2 · CSS de la barra
-
-En `css/styles.css`, agrega al final:
+Agrega en `css/styles.css`, al final del archivo después del bloque `/* ── BADGE HOVER TARJETA · S06 ── */` — **solo si no existe ya `.header-acciones`**:
 
 ```css
-/* ── BARRA DE PROGRESO SCROLL · S06 ──────────────── */
-.barra-scroll {
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 4px;
-  width: 0%;
-  background: linear-gradient(90deg, #39a900, #ff6b00);
-  z-index: 1000;
-  transition: width 0.1s;
+.header-acciones {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 ```
 
-### Paso 3 · JavaScript en main.js
-
-Después del código del Ejercicio 1, agrega:
-
-```javascript
-// ══════════════════════════════════════════════
-// EJERCICIO 2 · BARRA DE PROGRESO SCROLL
-// Funciona en todas las páginas
-// ══════════════════════════════════════════════
-
-const barraScroll = document.querySelector('#barra-scroll');
-
-if (barraScroll) {
-  window.addEventListener('scroll', function() {
-    // scrollY = cuántos píxeles hemos bajado
-    // scrollHeight - innerHeight = total de píxeles posibles
-    const totalDesplazamiento = document.body.scrollHeight - window.innerHeight;
-    const porcentaje = (window.scrollY / totalDesplazamiento) * 100;
-    barraScroll.style.width = porcentaje + '%';
-  });
-}
-```
-
-### Verificar ejercicio 2
-
-- [ ] Abre `index.html` — en la parte superior debe verse una barra muy delgada (empieza invisible)
-- [ ] Haz scroll hacia abajo — la barra se llena de verde a naranja
-- [ ] Llega al final de la página — la barra debe estar completamente llena
-- [ ] Prueba en las 4 páginas — todas deben tener la barra
-
----
-
-## Ejercicio 3 — Badge hover en tarjetas
-
-### Paso 1 · CSS del badge
-
-En `css/styles.css`, primero busca la regla `.tarjeta` que ya existe y cambia `overflow: hidden` por `overflow: visible`. Si no lo haces, el badge se corta porque la tarjeta oculta lo que sale de sus bordes:
+### Paso 2 — Estilos del badge en `css/styles.css`
 
 ```css
-.tarjeta {
-  overflow: visible; /* ← cambiar hidden por visible */
-}
-```
-
-Luego agrega al final del archivo:
-
-```css
-/* ── BADGE HOVER TARJETA · S06 ───────────────────── */
-.tarjeta {
-  position: relative; /* necesario para posicionar el badge */
+/* ===== S07: BADGE CARRITO ===== */
+.carrito-badge-contenedor {
+  position: relative;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
 }
 
-.badge-disponible {
+.carrito-badge-contenedor > span:first-child {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.carrito-badge {
   position: absolute;
-  top: -10px;
+  top: -8px;
   right: -10px;
-  background: #39a900;
-  color: #fff;
+  background: var(--color-primario);
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
   font-size: 11px;
   font-weight: 700;
-  padding: 4px 10px;
-  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.carrito-badge.oculto {
   display: none;
-  z-index: 10;
-}
-
-.badge-disponible.visible {
-  display: inline-block;
 }
 ```
 
-### Paso 2 · Agregar el badge en la función crearTarjeta (main.js)
+### Paso 3 — Funciones del carrito en `js/main.js`
 
-Como las tarjetas las genera JavaScript, el badge también debe agregarse en `crearTarjeta`, no en el HTML.
-
-Abre `main.js` y busca la función `crearTarjeta`. Después del `>` que cierra los atributos del `<article>` y antes de la etiqueta `<img>`, agrega esta línea:
-
-```html
-<span class="badge-disponible">✓ Disponible</span>
-```
-
-La función completa queda así:
+Al final de `main.js`, agrega:
 
 ```javascript
-function crearTarjeta(producto) {
-  return `
-    <article class="tarjeta"
-      data-id="${producto.id}"
-      data-icono="${producto.icono || '📦'}"
-      data-nombre="${producto.nombre}"
-      data-desc="${producto.descripcion}"
-      data-precio="${producto.precio}">
-      <span class="badge-disponible">✓ Disponible</span>
-      <img src="${producto.imagen}" alt="${producto.nombre}" class="tarjeta-img">
-      <div class="tarjeta-info">
-        <h3 class="tarjeta-nombre">${producto.nombre}</h3>
-        <p class="tarjeta-desc">${producto.descripcion}</p>
-        <div class="tarjeta-pie">
-          <span class="tarjeta-precio">${producto.precio}</span>
-          <button class="btn-accion">Ver más</button>
-        </div>
-      </div>
-    </article>
-  `;
+// ===== S07: CARRITO DE COMPRAS =====
+
+// Lee el carrito de LocalStorage (o devuelve array vacío)
+function leerCarrito() {
+  const guardado = localStorage.getItem('carrito');
+  return guardado ? JSON.parse(guardado) : [];
 }
-```
 
-> **Importante:** los atributos `data-*` van en la etiqueta de apertura del `<article>`. El `<span class="badge-disponible">` va adentro, como primer hijo, después del `>` de cierre.
+// Guarda el carrito en LocalStorage y actualiza el badge
+function guardarCarrito(carrito) {
+  localStorage.setItem('carrito', JSON.stringify(carrito));
+  actualizarBadge();
+}
 
-### Paso 3 · JavaScript en main.js
+// ✏️ COMPLETA: Actualiza el número que aparece en el badge del header
+function actualizarBadge() {
+  const badge = document.getElementById('carrito-badge');
+  if (!badge) return; // el badge puede no existir en todas las páginas
+  
+  const carrito = leerCarrito();
+  badge.textContent = carrito.length;
+  
+  badge.classList.remove('oculto');
+}
 
-Después del código del Ejercicio 2, agrega:
+// ✏️ COMPLETA: Agrega un producto al carrito
+function agregarAlCarrito(producto) {
+  const carrito = leerCarrito();
+  carrito.push(producto);
+  guardarCarrito(carrito); // guarda y actualiza badge
+  
+  // Feedback visual al usuario
+  alert(`✅ ${producto.nombre} agregado al carrito`);
+}
 
-```javascript
-// ══════════════════════════════════════════════
-// EJERCICIO 3 · BADGE HOVER EN TARJETAS
-// Solo en productos.html
-// ══════════════════════════════════════════════
-
-const todasLasTarjetas = document.querySelectorAll('.tarjeta');
-
-todasLasTarjetas.forEach(function(tarjeta) {
-  const badge = tarjeta.querySelector('.badge-disponible');
-
-  if (badge) {
-    // Mostrar badge al entrar el mouse
-    tarjeta.addEventListener('mouseover', function() {
-      badge.classList.add('visible');
-    });
-
-    // Ocultar badge al salir el mouse
-    tarjeta.addEventListener('mouseout', function() {
-      badge.classList.remove('visible');
-    });
-  }
-});
-```
-
-### Verificar ejercicio 3
-
-- [ ] En `productos.html`, pasa el mouse por encima de una tarjeta → aparece el badge verde "✓ Disponible"
-- [ ] Mueve el mouse fuera de la tarjeta → el badge desaparece
-- [ ] Funciona en las 6 tarjetas
-- [ ] No hay errores en consola
-
----
-
-## Commit en GitHub
-
-Cuando los 3 ejercicios funcionen sin errores en consola:
-
-```bash
-git add js/main.js css/styles.css productos.html index.html nosotros.html contacto.html
-git commit -m "feat: agregar modal, barra scroll y hover badge - S06"
-git push
-```
-
-Verifica en GitHub que aparezca el commit con ese mensaje.
-
----
-
-## Errores frecuentes
-
-**El modal no abre**
-- Verifica que `#modal-producto` existe en el HTML
-- Verifica que los `data-*` están en el `<article>`, no en el `<button>`
-- En la consola escribe: `document.querySelector('#modal-producto')` — si devuelve `null`, el problema está en el HTML
-
-**La barra de scroll no aparece**
-- Verifica que agregaste `<div id="barra-scroll">` en el HTML de esa página
-- La barra empieza en ancho 0 — es invisible hasta que haces scroll
-- Si la página es corta, no habrá mucho espacio para hacer scroll
-
-**El badge no aparece al hacer hover**
-- Verifica que `<span class="badge-disponible">` está dentro del `<article class="tarjeta">`
-- En el CSS: `.tarjeta { position: relative; }` es obligatorio para que el badge se posicione bien
-
-**`querySelector` devuelve null**
-- El elemento no existe en esa página. Por eso usamos `if (modal)` y `if (barraScroll)` — así el código no da error en páginas donde el elemento no existe
-
----
-
-## ¿Terminaste antes?
-
-Si terminaste los 3 ejercicios y el commit, prueba este reto adicional:
-
-**Filtro de búsqueda en tiempo real**
-
-En `productos.html`, agrega un input sobre el grid de tarjetas:
-
-```html
-<input type="text" id="buscador" placeholder="🔍 Buscar producto..." 
-       style="width:100%;padding:12px 16px;border:2px solid #e2e8f0;border-radius:10px;font-size:16px;margin-bottom:24px;">
-```
-
-Y en `js/main.js`:
-
-```javascript
-// ✏️ RETO ADICIONAL · BÚSQUEDA EN TIEMPO REAL
-const buscador = document.querySelector('#buscador');
-
-if (buscador) {
-  buscador.addEventListener('input', function() {
-    const termino = buscador.value.toLowerCase();
+// Conectar el botón "Agregar al carrito" del modal
+const btnModalCarrito = document.querySelector('.modal-btn-carrito');
+if (btnModalCarrito) {
+  btnModalCarrito.addEventListener('click', function() {
+    // Leer los datos del producto desde el modal
+    const producto = {
+      nombre: document.getElementById('modal-titulo').textContent,
+      precio: document.getElementById('modal-precio').textContent,
+      icono: document.getElementById('modal-icono').textContent,
+      fecha:  new Date().toLocaleDateString('es-CO')
+    };
     
-    todasLasTarjetas.forEach(function(tarjeta) {
-      const nombre = tarjeta.dataset.nombre.toLowerCase();
-      if (nombre.includes(termino)) {
-        tarjeta.style.display = 'block';
-      } else {
-        tarjeta.style.display = 'none';
-      }
-    });
+    agregarAlCarrito(producto);
+    
+    // Cerrar el modal
+    document.getElementById('modal-producto').classList.remove('visible');
+  });
+}
+
+// Inicializar el badge al cargar la página
+actualizarBadge();
+
+// Clic en el badge → ir a carrito.html
+const badgeContenedor = document.querySelector('.carrito-badge-contenedor');
+if (badgeContenedor) {
+  badgeContenedor.addEventListener('click', function() {
+    window.location.href = 'carrito.html';
   });
 }
 ```
 
----
+### Caso de prueba — Ejercicio 2
 
-## Resumen de lo que aprendiste hoy
-
-| Concepto | Lo que hace | Dónde lo usaste |
-|----------|-------------|-----------------|
-| `addEventListener('click', fn)` | Escucha clics en un elemento | Botones "Ver más" → abrir modal |
-| `addEventListener('scroll', fn)` | Escucha el scroll de la página | Barra de progreso |
-| `addEventListener('mouseover', fn)` | Detecta cuando el mouse entra | Badge en tarjetas |
-| `addEventListener('mouseout', fn)` | Detecta cuando el mouse sale | Ocultar badge |
-| `addEventListener('keydown', fn)` | Detecta teclas presionadas | Escape → cerrar modal |
-| `evento.key` | Qué tecla se presionó | `'Escape'` → cerrar |
-| `evento.target` | Qué elemento disparó el evento | Clic fuera del modal |
-| `classList.add()` | Agrega una clase CSS | Modal → clase `visible` |
-| `classList.remove()` | Quita una clase CSS | Cerrar modal |
-| `dataset.nombre` | Lee atributo `data-nombre` del HTML | Llenar el modal |
-| `window.scrollY` | Píxeles desplazados desde el tope | Calcular % barra |
+1. Carga la página → badge muestra `0` (o está oculto)
+2. Abre el modal de cualquier producto → clic en "🛒 Agregar al carrito"
+3. Badge cambia a `1` ✓
+4. **Recarga la página** → badge sigue mostrando `1` ✓
+5. Navega a `productos.html` → badge sigue mostrando `1` ✓
+6. Agrega otro producto → badge muestra `2` ✓
+7. Abre DevTools → Application → Local Storage → verás `carrito: [...]` ✓
 
 ---
 
-*Próxima sesión: S07 · Miércoles 29 de Julio · Arrays, Objetos y Métodos (map, filter, reduce)*  
-*El catálogo de TechStore Pro se construirá completamente desde un array de JavaScript.*
+## Ejercicio 3: Página del carrito (40 min)
 
----
+### Lo que vas a construir
 
-## 🔍 Reto de investigación — imagen rota
+Una página `carrito.html` que lee el LocalStorage y muestra los productos que el usuario ha agregado.
 
-Si revisas bien el catálogo, una de las 6 tarjetas no muestra imagen. El Monitor LG UltraWide tiene un link de imagen que ya no funciona.
+### Paso 0 — Agrega los estilos en `css/styles.css`
 
-**Tu misión:** detectar cuál es, entender por qué pasa y reemplazar la URL por una que sí funcione.
+Al final del archivo, después del bloque `/* ===== S07: BADGE CARRITO ===== */`:
 
-**Pistas:**
-- Abre DevTools → pestaña **Network** → filtra por **Img** → recarga la página. Las imágenes rotas aparecen en rojo con error 404.
-- También puedes verlo en DevTools → pestaña **Console** — busca errores de tipo `net::ERR_FAILED`.
+```css
+/* ===== S07: PÁGINA CARRITO ===== */
+.seccion-carrito {
+  max-width: 800px;
+  margin: 60px auto;
+  padding: 0 32px;
+}
 
-**Una URL que sí funciona para el monitor:**
+.carrito-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--color-blanco);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio);
+  padding: 16px 20px;
+  margin-bottom: 12px;
+}
+
+.carrito-item-icono { font-size: 32px; }
+.carrito-item-info  { flex: 1; }
+.carrito-item-nombre { font-weight: 700; color: var(--color-oscuro); }
+.carrito-item-precio { color: var(--color-primario); font-weight: 700; }
+.carrito-item-fecha  { font-size: 12px; color: var(--color-texto-suave); }
+
+.carrito-acciones {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+  justify-content: center;
+}
+
+.carrito-vacio {
+  text-align: center;
+  padding: 40px;
+  color: var(--color-texto-suave);
+}
 ```
-https://images.unsplash.com/photo-1586210579191-33b45e38fa2c?w=400&h=250&fit=crop&q=80
+
+### Paso 1 — Crea `carrito.html`
+
+Copia la estructura de `index.html` (header, footer, scripts). Reemplaza el `<main>` con:
+
+```html
+<main>
+  <section class="seccion-carrito" id="seccion-carrito">
+    <div class="seccion-header">
+      <h2>🛒 Mi carrito</h2>
+      <p id="carrito-resumen">Cargando...</p>
+    </div>
+    
+    <!-- ✏️ La lista de productos se genera con JavaScript -->
+    <div id="lista-carrito"></div>
+    
+    <!-- Botón para vaciar el carrito -->
+    <div class="carrito-acciones">
+      <button id="btn-vaciar" class="btn btn-secundario">🗑️ Vaciar carrito</button>
+      <a href="index.html" class="btn btn-primario">Seguir comprando</a>
+    </div>
+  </section>
+</main>
 ```
 
-Reemplázala en el objeto `id: 6` del array `productos` en `main.js`.
+### Paso 2 — Función para mostrar el carrito en `js/main.js`
+
+Agrega al final del archivo, después del bloque `// ===== S07: CARRITO DE COMPRAS =====`:
+
+```javascript
+// ===== S07: PÁGINA CARRITO =====
+
+// ✏️ COMPLETA: Solo ejecutar si estamos en carrito.html
+function mostrarPaginaCarrito() {
+  const lista = document.getElementById('lista-carrito');
+  const resumen = document.getElementById('carrito-resumen');
+  if (!lista) return; // no estamos en carrito.html
+  
+  const carrito = leerCarrito();
+  
+  if (carrito.length === 0) {
+    resumen.textContent = 'Tu carrito está vacío';
+    lista.innerHTML = '<p class="carrito-vacio">No hay productos en el carrito. <a href="index.html">Ver productos →</a></p>';
+    return;
+  }
+  
+  resumen.textContent = `${carrito.length} producto(s) en el carrito`;
+  
+  lista.innerHTML = ''; // limpiar antes de renderizar
+  
+  carrito.forEach(function(producto, indice) {
+    const item = document.createElement('div');
+    item.classList.add('carrito-item');
+    item.innerHTML = `
+      <span class="carrito-item-icono">${producto.icono}</span>
+      <div class="carrito-item-info">
+        <div class="carrito-item-nombre">${producto.nombre}</div>
+        <div class="carrito-item-precio">${producto.precio}</div>
+        <div class="carrito-item-fecha">Agregado: ${producto.fecha}</div>
+      </div>
+      <button class="btn-eliminar" data-indice="${indice}">Eliminar</button>
+    `;
+    lista.appendChild(item);
+  });
+  
+  // Conectar los botones "Eliminar"
+  document.querySelectorAll('.btn-eliminar').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      const indice = parseInt(this.dataset.indice);
+      const carritoActual = leerCarrito();
+      carritoActual.splice(indice, 1); // eliminar ese índice
+      guardarCarrito(carritoActual);
+      mostrarPaginaCarrito(); // re-renderizar
+    });
+  });
+}
+
+// Botón vaciar carrito
+const btnVaciar = document.getElementById('btn-vaciar');
+if (btnVaciar) {
+  btnVaciar.addEventListener('click', function() {
+    if (confirm('¿Seguro que quieres vaciar el carrito?')) {
+      localStorage.removeItem('carrito');
+      actualizarBadge();
+      mostrarPaginaCarrito();
+    }
+  });
+}
+
+mostrarPaginaCarrito(); // llamar al cargar
+```
+
+### Caso de prueba — Ejercicio 3
+
+1. Agrega 2 o 3 productos desde `index.html`
+2. Abre `carrito.html` → deben aparecer los productos ✓
+3. Haz clic en "Eliminar" en un producto → desaparece ✓
+4. Badge del header se actualiza ✓
+5. Haz clic en "Vaciar carrito" → lista vacía y badge en `0` ✓
+6. Recarga `carrito.html` → sigue vacío ✓
+
+---
+
+## Checklist de autoevaluación
+
+Antes del commit, verifica:
+
+- [ ] El botón de tema aparece en el header de todas las páginas
+- [ ] Activar el tema oscuro y recargar → sigue oscuro
+- [ ] Agregar producto al carrito → badge se actualiza en tiempo real
+- [ ] Navegar a `productos.html` → badge mantiene el número
+- [ ] Recargar cualquier página → badge mantiene el número
+- [ ] `carrito.html` muestra los productos correctamente
+- [ ] Eliminar un producto desde `carrito.html` → badge se actualiza
+- [ ] Vaciar el carrito → todo se resetea
+- [ ] DevTools → Application → Local Storage → se ven las claves `tema` y `carrito`
+- [ ] Git commit hecho: `feat: tema oscuro, carrito y badge con LocalStorage - S07`
+
+---
+
+## Errores comunes
+
+| Error | Causa | Solución |
+|-------|-------|----------|
+| `localStorage.getItem('carrito')` devuelve `"[object Object]"` | Guardaste el array sin `JSON.stringify` | Usa `JSON.stringify(carrito)` al guardar |
+| `JSON.parse(...)` lanza un error | El valor guardado no es JSON válido | Verifica en DevTools qué hay guardado. Usa `localStorage.clear()` y prueba de nuevo |
+| Badge no se actualiza al agregar | `actualizarBadge()` no se llama desde `guardarCarrito` | Verifica que `guardarCarrito` llame a `actualizarBadge()` |
+| El tema no persiste | `aplicarTemaGuardado()` no se llama al cargar | Verifica que esté al final de `main.js` fuera de cualquier función |
+| Badge muestra `NaN` | `carrito.length` de un valor que no es array | Agrega `|| []` en `leerCarrito`: `return guardado ? JSON.parse(guardado) : []` |
+
+---
+
+## Glosario
+
+| Término | Definición |
+|---------|------------|
+| **LocalStorage** | API del navegador para guardar datos de forma persistente por dominio |
+| **SessionStorage** | Similar a LocalStorage pero solo dura mientras la pestaña está abierta |
+| **setItem / getItem** | Métodos para escribir y leer en LocalStorage |
+| **JSON.stringify** | Convierte un objeto/array JavaScript en texto JSON para almacenar |
+| **JSON.parse** | Convierte texto JSON de vuelta en objeto/array JavaScript |
+| **Persistencia** | Capacidad de un dato de sobrevivir a recargas o cierres del navegador |
+| **Badge** | Contador circular pequeño que aparece sobre un ícono (ej: notificaciones) |
+
+---
+
+## Recursos
+
+- [MDN — LocalStorage](https://developer.mozilla.org/es/docs/Web/API/Window/localStorage)
+- [MDN — JSON.stringify](https://developer.mozilla.org/es/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify)
+- [MDN — JSON.parse](https://developer.mozilla.org/es/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse)
+- DevTools → Application → Local Storage (para inspeccionar en tiempo real)
+
+---
+
+*Competencia 220501096 — Ficha 3229944 ADSO — Garzón, Huila*

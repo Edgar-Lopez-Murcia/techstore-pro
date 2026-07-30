@@ -354,3 +354,164 @@ if (buscador) {
     });
   });
 }
+
+// ===== S07: TEMA OSCURO =====
+
+// ✏️ COMPLETA: Lee el tema guardado en LocalStorage
+// Si existe, aplícalo al body. Si no existe, no hagas nada.
+function aplicarTemaGuardado() {
+  const tema = localStorage.getItem('tema');
+  if (tema === 'oscuro') {
+    document.body.classList.add('tema-oscuro');
+    const btn = document.getElementById('btn-tema');
+    if (btn) btn.textContent = '☀️'; // cambiar el ícono
+  }
+}
+
+// ✏️ COMPLETA: Alterna entre claro y oscuro y guarda la preferencia
+function toggleTema() {
+  const esOscuro = document.body.classList.toggle('tema-oscuro');
+  const btn = document.getElementById('btn-tema');
+  
+  if (esOscuro) {
+    localStorage.setItem('tema', 'oscuro');
+    if (btn) btn.textContent = '☀️';
+  } else {
+    localStorage.setItem('tema', 'claro');
+    if (btn) btn.textContent = '🌙';
+  }
+}
+
+// Conectar el botón y aplicar el tema al cargar
+const btnTema = document.getElementById('btn-tema');
+if (btnTema) {
+  btnTema.addEventListener('click', toggleTema);
+}
+
+aplicarTemaGuardado();
+
+// ===== S07: CARRITO DE COMPRAS =====
+
+// Lee el carrito de LocalStorage (o devuelve array vacío)
+function leerCarrito() {
+  const guardado = localStorage.getItem('carrito');
+  return guardado ? JSON.parse(guardado) : [];
+}
+
+// Guarda el carrito en LocalStorage y actualiza el badge
+function guardarCarrito(carrito) {
+  localStorage.setItem('carrito', JSON.stringify(carrito));
+  actualizarBadge();
+}
+
+// ✏️ COMPLETA: Actualiza el número que aparece en el badge del header
+function actualizarBadge() {
+  const badge = document.getElementById('carrito-badge');
+  if (!badge) return; // el badge puede no existir en todas las páginas
+  
+  const carrito = leerCarrito();
+  badge.textContent = carrito.length;
+  
+  badge.classList.remove('oculto');
+}
+
+// ✏️ COMPLETA: Agrega un producto al carrito
+function agregarAlCarrito(producto) {
+  const carrito = leerCarrito();
+  carrito.push(producto);
+  guardarCarrito(carrito); // guarda y actualiza badge
+  
+  // Feedback visual al usuario
+  alert(`✅ ${producto.nombre} agregado al carrito`);
+}
+
+// Conectar el botón "Agregar al carrito" del modal
+const btnModalCarrito = document.querySelector('.modal-btn-carrito');
+if (btnModalCarrito) {
+  btnModalCarrito.addEventListener('click', function() {
+    // Leer los datos del producto desde el modal
+    const producto = {
+      nombre: document.getElementById('modal-titulo').textContent,
+      precio: document.getElementById('modal-precio').textContent,
+      icono: document.getElementById('modal-icono').textContent,
+      fecha:  new Date().toLocaleDateString('es-CO')
+    };
+    
+    agregarAlCarrito(producto);
+    
+    // Cerrar el modal
+    document.getElementById('modal-producto').classList.remove('visible');
+  });
+}
+
+// Inicializar el badge al cargar la página
+actualizarBadge();
+
+// Clic en el badge → ir a carrito.html
+const badgeContenedor = document.querySelector('.carrito-badge-contenedor');
+if (badgeContenedor) {
+  badgeContenedor.addEventListener('click', function() {
+    window.location.href = 'carrito.html';
+  });
+}
+
+// ===== S07: PÁGINA CARRITO =====
+
+// ✏️ COMPLETA: Solo ejecutar si estamos en carrito.html
+function mostrarPaginaCarrito() {
+  const lista = document.getElementById('lista-carrito');
+  const resumen = document.getElementById('carrito-resumen');
+  if (!lista) return; // no estamos en carrito.html
+  
+  const carrito = leerCarrito();
+  
+  if (carrito.length === 0) {
+    resumen.textContent = 'Tu carrito está vacío';
+    lista.innerHTML = '<p class="carrito-vacio">No hay productos en el carrito. <a href="index.html">Ver productos →</a></p>';
+    return;
+  }
+  
+  resumen.textContent = `${carrito.length} producto(s) en el carrito`;
+  
+  lista.innerHTML = ''; // limpiar antes de renderizar
+  
+  carrito.forEach(function(producto, indice) {
+    const item = document.createElement('div');
+    item.classList.add('carrito-item');
+    item.innerHTML = `
+      <span class="carrito-item-icono">${producto.icono}</span>
+      <div class="carrito-item-info">
+        <div class="carrito-item-nombre">${producto.nombre}</div>
+        <div class="carrito-item-precio">${producto.precio}</div>
+        <div class="carrito-item-fecha">Agregado: ${producto.fecha}</div>
+      </div>
+      <button class="btn-eliminar" data-indice="${indice}">Eliminar</button>
+    `;
+    lista.appendChild(item);
+  });
+  
+  // Conectar los botones "Eliminar"
+  document.querySelectorAll('.btn-eliminar').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      const indice = parseInt(this.dataset.indice);
+      const carritoActual = leerCarrito();
+      carritoActual.splice(indice, 1); // eliminar ese índice
+      guardarCarrito(carritoActual);
+      mostrarPaginaCarrito(); // re-renderizar
+    });
+  });
+}
+
+// Botón vaciar carrito
+const btnVaciar = document.getElementById('btn-vaciar');
+if (btnVaciar) {
+  btnVaciar.addEventListener('click', function() {
+    if (confirm('¿Seguro que quieres vaciar el carrito?')) {
+      localStorage.removeItem('carrito');
+      actualizarBadge();
+      mostrarPaginaCarrito();
+    }
+  });
+}
+
+mostrarPaginaCarrito(); // llamar al cargar
