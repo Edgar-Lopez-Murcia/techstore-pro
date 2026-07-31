@@ -496,6 +496,21 @@ a:hover { color: var(--color-secundario); }
   margin-bottom: 12px;
 }
 
+.contenedor-buscador {
+  text-align: center;
+  width: 100%;
+  margin: 32px;
+
+}
+.buscador {
+  width:80%;
+  padding:12px 16px ;
+  border:2px solid #e2e8f0;
+  border-radius:30px;
+  font-size:16px;
+  margin-bottom:24px;
+
+}
 .page-header p {
   font-size: 17px;
   color: rgba(255,255,255,0.6);
@@ -1092,4 +1107,17 @@ body.tema-oscuro .miembro h3 { color: #f1f5f9; }
   text-align: center;
   padding: 40px;
   color: var(--color-texto-suave);
+}
+
+/* ===== S08: ERROR FETCH ===== */
+.error-fetch {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 60px 32px;
+  color: #ef4444;
+  font-size: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
 }

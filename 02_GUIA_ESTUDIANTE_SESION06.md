@@ -1,516 +1,496 @@
-# Guía del Estudiante — Sesión 07
-## LocalStorage y Persistencia de Datos
+# Guía del Estudiante — Sesión 08
+## Fetch API: Consumir datos desde un archivo JSON
 
 **Competencia:** 220501096 — Construcción de Software  
 **Ficha:** 3229944 ADSO — Garzón, Huila  
 **Duración:** 4 horas  
-**Proyecto:** TechStore Pro (`C:\Users\[tu-usuario]\techstore-pro`)
+**Proyecto:** TechStore Pro
 
 ---
 
 ## Objetivos de aprendizaje
 
-Al finalizar la sesión serás capaz de:
-
-1. Explicar la diferencia entre datos en variables JS y datos en LocalStorage
-2. Usar los 4 métodos de LocalStorage: `setItem`, `getItem`, `removeItem`, `clear`
-3. Guardar y leer arrays de objetos usando `JSON.stringify` y `JSON.parse`
-4. Agregar persistencia real a TechStore Pro: tema oscuro + carrito de compras + badge del header
+1. Entender por qué `fetch()` es asíncrono y qué significa eso
+2. Usar `async/await` para leer un archivo JSON
+3. Migrar los productos de TechStore Pro de un array hardcodeado a `data/productos.json`
+4. Manejar errores con `try/catch` — mostrar mensaje visible si el fetch falla
 
 ---
 
 ## Conceptos clave
 
-### ¿Por qué los datos se pierden?
+### El problema actual
 
-Cuando escribes `let carrito = []` en JavaScript, ese array existe en la **memoria RAM** del navegador. Es temporal: en cuanto la página se recarga o se cierra, desaparece.
-
-```
-Variable JS:  Existe mientras la página está abierta → muere al recargar
-LocalStorage: Existe en el disco del navegador → sobrevive al cerrar Chrome
-```
-
-### ¿Qué es LocalStorage?
-
-Un espacio de almacenamiento que el navegador le da a cada sitio web. Piénsalo como un pequeño cajón con llave — solo `localhost:5500` puede abrir el cajón de `localhost:5500`.
-
-**Límites:**
-- ~5 MB por dominio (más que suficiente para cualquier proyecto del curso)
-- Solo guarda texto (strings)
-- No tiene fecha de expiración — persiste indefinidamente
-- No se comparte entre dominios ni entre navegadores
-
-### Los 4 métodos
-
-| Método | Qué hace | Ejemplo |
-|--------|----------|---------|
-| `setItem(clave, valor)` | Guarda o sobreescribe un dato | `localStorage.setItem('tema', 'oscuro')` |
-| `getItem(clave)` | Lee un dato (devuelve `null` si no existe) | `localStorage.getItem('tema')` |
-| `removeItem(clave)` | Borra un dato específico | `localStorage.removeItem('tema')` |
-| `clear()` | Borra todo lo del sitio | `localStorage.clear()` |
-
-### Guardar arrays y objetos — regla obligatoria
-
-LocalStorage solo acepta strings. Si intentas guardar un array directamente, lo convierte a `"[object Object]"` — inútil.
-
-**Solución: JSON.stringify al guardar, JSON.parse al leer**
+Los 6 productos viven hardcodeados en `main.js`:
 
 ```javascript
-// Guardar un array
-const carrito = [{ id: 1, nombre: "MacBook Pro" }];
-localStorage.setItem('carrito', JSON.stringify(carrito));
-
-// Leer el array
-const texto = localStorage.getItem('carrito');
-const carritoLeido = JSON.parse(texto);
-console.log(carritoLeido[0].nombre); // "MacBook Pro"
+const productos = [
+  { id: 1, nombre: "MacBook Pro M3", ... },
+  ...
+];
 ```
 
-**Regla fácil:** Si guardas → `stringify`. Si lees → `parse`.
+Esto funciona, pero tiene un problema: **cada vez que quieras agregar o editar un producto, tienes que modificar el JavaScript**. En el mundo real los datos viven separados del código — en archivos JSON que cualquier persona puede editar sin tocar el código.
+
+### ¿Qué es fetch()?
+
+`fetch()` es la función del navegador para pedir datos a un servidor — o a un archivo local. Es **asíncrona**: no congela la página mientras espera la respuesta.
+
+```
+Sin fetch:  JS carga → productos ya están en el array → se muestran
+Con fetch:  JS carga → header/footer aparecen → fetch pide datos → productos aparecen
+```
+
+### async / await
+
+Cuando una operación tarda (como leer un archivo), usamos `async/await` para esperar el resultado sin congelar la página:
+
+```javascript
+// Con async/await — fácil de leer
+async function cargarProductos() {
+  const respuesta = await fetch('data/productos.json'); // esperar respuesta
+  const datos     = await respuesta.json();             // esperar conversión a array
+  console.log(datos); // array de productos listo para usar
+}
+```
+
+### ⚠️ Live Server obligatorio
+
+`fetch()` no funciona con `file://` (doble clic al archivo). Siempre abre el proyecto con el botón **"Go Live"** de VS Code.
 
 ---
 
-## Ejercicio 1: Tema oscuro persistente (45 min)
+## Ejercicio 1: Tu primer fetch desde la consola (20 min)
 
-### Lo que vas a construir
+Antes de tocar el proyecto, practica en la consola con una API pública gratuita.
 
-Un botón en el header que alterna entre tema claro y oscuro. La preferencia se guarda en LocalStorage y se aplica automáticamente al recargar la página.
+### Paso 1 — Fetch básico
 
-### Paso 1 — Agrega el botón al header en `index.html`
+Con TechStore Pro abierto en Live Server, abre DevTools → pestaña **Console**.
 
-Abre `index.html`. Agrega el botón **después del `</nav>`**, antes del `</header>`. En diseño web el botón de tema siempre va en el extremo derecho, separado de la navegación:
-
-```html
-    <nav id="nav-menu" class="nav-menu">
-      <a href="index.html" class="activo">Inicio</a>
-      <a href="productos.html">Productos</a>
-      <a href="nosotros.html">Nosotros</a>
-      <a href="contacto.html">Contacto</a>
-    </nav>
-    <!-- ✏️ S07: botón tema — extremo derecho, fuera del nav -->
-    <button id="btn-tema" class="btn-tema" aria-label="Cambiar tema">🌙</button>
-  </header>
-```
-
-Haz lo mismo en `productos.html`, `nosotros.html` y `contacto.html` — el botón debe aparecer en todas las páginas.
-
-### Paso 2 — Agrega los estilos en `css/styles.css`
-
-Abre `css/styles.css`. Ve al final del archivo (después del bloque `/* ── BADGE HOVER TARJETA · S06 ── */`) y agrega esto al final:
-
-```css
-/* ===== S07: TEMA OSCURO ===== */
-
-/* Mismo padding que los links del nav — así queda alineado */
-.btn-tema {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
-  padding: 8px 12px;
-  cursor: pointer;
-  font-size: 15px;
-  color: white;
-  transition: background 0.2s, border-color 0.2s;
-  line-height: 1;
-}
-
-.btn-tema:hover {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.4);
-}
-
-/* Variables del tema oscuro */
-body.tema-oscuro {
-  --color-fondo:       #0f172a;
-  --color-blanco:      #1e293b;
-  --color-texto:       #e2e8f0;
-  --color-texto-suave: #94a3b8;
-  --color-borde:       #334155;
-}
-
-body.tema-oscuro .seccion-header h2 { color: #f1f5f9; }
-
-body.tema-oscuro .tarjeta {
-  background: #1e293b;
-  border-color: #334155;
-}
-
-body.tema-oscuro .tarjeta-nombre { color: #f1f5f9; }
-
-body.tema-oscuro .modal-caja  { background: #1e293b; color: #f1f5f9; }
-body.tema-oscuro .modal-titulo { color: #f1f5f9; }
-body.tema-oscuro .modal-desc   { color: #94a3b8; }
-```
-
-### Paso 3 — Agrega las funciones en `js/main.js`
-
-Al final de `main.js`, agrega estas funciones:
+Pega este código y presiona **Enter**:
 
 ```javascript
-// ===== S07: TEMA OSCURO =====
-
-// ✏️ COMPLETA: Lee el tema guardado en LocalStorage
-// Si existe, aplícalo al body. Si no existe, no hagas nada.
-function aplicarTemaGuardado() {
-  const tema = localStorage.getItem('tema');
-  if (tema === 'oscuro') {
-    document.body.classList.add('tema-oscuro');
-    const btn = document.getElementById('btn-tema');
-    if (btn) btn.textContent = '☀️'; // cambiar el ícono
-  }
-}
-
-// ✏️ COMPLETA: Alterna entre claro y oscuro y guarda la preferencia
-function toggleTema() {
-  const esOscuro = document.body.classList.toggle('tema-oscuro');
-  const btn = document.getElementById('btn-tema');
-  
-  if (esOscuro) {
-    localStorage.setItem('tema', 'oscuro');
-    if (btn) btn.textContent = '☀️';
-  } else {
-    localStorage.setItem('tema', 'claro');
-    if (btn) btn.textContent = '🌙';
-  }
-}
-
-// Conectar el botón y aplicar el tema al cargar
-const btnTema = document.getElementById('btn-tema');
-if (btnTema) {
-  btnTema.addEventListener('click', toggleTema);
-}
-
-aplicarTemaGuardado(); // ← ejecutar al cargar la página
+fetch('https://jsonplaceholder.typicode.com/users/1')
+  .then(function(r) { return r.json(); })
+  .then(function(datos) { console.log(datos); });
 ```
 
-### Caso de prueba — Ejercicio 1
+En la consola verás esto (es normal):
 
-1. Recarga la página → tema claro (por defecto)
-2. Haz clic en el botón 🌙 → tema oscuro, ícono cambia a ☀️
-3. **Recarga la página** → debe seguir en tema oscuro ✓
-4. Abre DevTools → Application → Local Storage → verás `tema: "oscuro"` ✓
-5. Haz clic en ☀️ → vuelve a tema claro
-6. Recarga → tema claro ✓
+```
+Promise {<pending>}
+{id: 1, name: 'Leanne Graham', username: 'Bret', email: 'Sincere@april.biz', ...}
+```
+
+**¿Qué significa cada línea?**
+
+- **`Promise {<pending>}`** — aparece inmediatamente al presionar Enter. Significa "la petición salió, aún no llegó la respuesta". La promesa está en estado *pendiente*. Es normal y esperado.
+- **`{id: 1, name: 'Leanne Graham', ...}`** — llega medio segundo después. Es la respuesta del servidor convertida a objeto JavaScript. Ahí están los datos reales.
+
+**¿De dónde salen esos datos?**
+
+`jsonplaceholder.typicode.com` es una API pública y gratuita para practicar. Tiene usuarios, posts y comentarios inventados. Tu navegador envió una petición HTTP real a ese servidor y él respondió con el usuario 1 en formato JSON — exactamente lo mismo que va a pasar con `data/productos.json` en tu proyecto, solo que los datos vivirán en tu propio archivo.
+
+### Paso 2 — Con async/await
+
+Ahora escribe lo mismo pero con la sintaxis moderna. Pega esto en la consola y presiona **Enter**:
+
+```javascript
+async function probar() {
+  const respuesta = await fetch('https://jsonplaceholder.typicode.com/users/1');
+  const datos = await respuesta.json();
+  console.log('Nombre:', datos.name);
+  console.log('Email:', datos.email);
+}
+probar();
+```
+
+En la consola verás:
+
+```
+Promise {<pending>}
+Nombre: Leanne Graham
+Email: Sincere@april.biz
+```
+
+**¿Qué cambió respecto al Paso 1?**
+
+- Ya no hay `.then()` encadenados — el código se lee de arriba a abajo como si fuera síncrono.
+- `await` pausa la función en esa línea hasta que llega la respuesta, sin bloquear el resto de la página.
+- Puedes acceder a propiedades directamente: `datos.name`, `datos.email`, `datos.address`, etc.
+- Esta es la forma que usarás en el proyecto con `cargarProductos()`.
+
+### Paso 3 — Lista de posts (varios registros a la vez)
+
+Ahora pide varios registros a la vez y recorre el array con `forEach`. Pega esto en la consola:
+
+```javascript
+async function verPosts() {
+  const respuesta = await fetch('https://jsonplaceholder.typicode.com/posts');
+  const posts = await respuesta.json();
+  console.log('Total de posts:', posts.length);
+  posts.slice(0, 3).forEach(function(post) {
+    console.log('Título:', post.title);
+  });
+}
+verPosts();
+```
+
+En la consola verás:
+
+```
+Total de posts: 100
+Título: sunt aut facere repellat provident occaecati excepturi optio reprehenderit
+Título: qui est esse
+Título: ea molestiae et quasi iste unde qui adipisci
+```
+
+**¿Por qué es importante este ejemplo?**
+
+- `posts` es un **array de 100 objetos** — igual que `productos` va a ser un array de objetos en tu proyecto.
+- `.slice(0, 3)` toma solo los primeros 3 para no llenar la consola.
+- `.forEach()` recorre el array y accede a cada propiedad — exactamente lo que hace `crearTarjeta()` con cada producto.
+
+### Caso de prueba
+
+- Ves un objeto con datos en la consola ✓
+- `datos.name` muestra un nombre ✓
+- `posts.length` muestra 100 ✓
+- Los 3 títulos aparecen en consola ✓
+- No hay errores rojos ✓
 
 ---
 
-## Ejercicio 2: Carrito de compras (55 min)
+## Ejercicio 2: Migrar productos a JSON (70 min)
 
 ### Lo que vas a construir
 
-Cuando el usuario hace clic en "🛒 Agregar al carrito" dentro del modal, el producto se guarda en LocalStorage. El carrito persiste al navegar entre páginas y al recargar.
+Los productos salen de `main.js` y van a `data/productos.json`. La función `cargarProductos()` los carga con `fetch()`. Todo lo demás — modal, carrito, buscador — sigue igual.
 
-### Paso 1 — Agrega el badge al header
+### Paso 1 — Crear `data/productos.json`
 
-En `index.html` **y** `productos.html`, **reemplaza** el `<button id="btn-tema">` suelto por este bloque que agrupa el botón y el badge, antes del `</header>`:
+En la carpeta raíz del proyecto crea la carpeta `data/` y dentro el archivo `productos.json`:
 
-```html
-    <div class="header-acciones">
-      <button id="btn-tema" class="btn-tema" aria-label="Cambiar tema">🌙</button>
-      <div class="carrito-badge-contenedor">
-        <span>🛒</span>
-        <span class="carrito-badge" id="carrito-badge">0</span>
+```
+plantilla_proyecto/
+├── data/
+│   └── productos.json   ← nuevo
+├── css/
+├── js/
+├── index.html
+└── ...
+```
+
+Contenido de `data/productos.json`:
+
+```json
+[
+  {
+    "id": 1,
+    "icono": "💻",
+    "nombre": "MacBook Pro M3",
+    "descripcion": "Chip M3, 16 GB RAM, 512 GB SSD, pantalla Liquid Retina.",
+    "precio": "$8.999.000",
+    "imagen": "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400&h=250&fit=crop&q=80"
+  },
+  {
+    "id": 2,
+    "icono": "📱",
+    "nombre": "iPhone 15 Pro",
+    "descripcion": "Chip A17 Pro, titanio, Dynamic Island, cámara 48 MP.",
+    "precio": "$4.299.000",
+    "imagen": "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=400&h=250&fit=crop&q=80"
+  },
+  {
+    "id": 3,
+    "icono": "🎮",
+    "nombre": "RTX 4070 Super",
+    "descripcion": "12 GB GDDR6X, DLSS 3, Ray Tracing. Gaming 4K fluido.",
+    "precio": "$2.399.000",
+    "imagen": "https://images.unsplash.com/photo-1591488320449-011701bb6704?w=400&h=250&fit=crop&q=80"
+  },
+  {
+    "id": 4,
+    "icono": "💼",
+    "nombre": "Dell XPS 15",
+    "descripcion": "Intel i7 13va gen, 32 GB RAM, pantalla OLED 4K.",
+    "precio": "$6.799.000",
+    "imagen": "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&h=250&fit=crop&q=80"
+  },
+  {
+    "id": 5,
+    "icono": "📲",
+    "nombre": "Samsung Galaxy S24",
+    "descripcion": "Snapdragon 8 Gen 3, IA Galaxy, cámara 200 MP.",
+    "precio": "$3.199.000",
+    "imagen": "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=250&fit=crop&q=80"
+  },
+  {
+    "id": 6,
+    "icono": "🖥️",
+    "nombre": "Monitor LG UltraWide 34\"",
+    "descripcion": "Panel IPS curvo, 3440×1440, 144 Hz, HDR10.",
+    "precio": "$1.899.000",
+    "imagen": "https://images.unsplash.com/photo-1586210579191-33b45e38fa2c?w=400&h=250&fit=crop&q=80"
+  }
+]
+```
+
+> **Diferencias JS → JSON:**
+> - Las claves llevan comillas dobles: `"nombre"` no `nombre`
+> - No hay `const`, no hay `;`, no hay comentarios
+> - Sin coma después del último objeto `}`
+
+### Paso 2 — Eliminar el array de `main.js`
+
+Abre `js/main.js`. **Elimina** el bloque completo `const productos = [...]` (los 6 productos, desde la línea `const productos = [` hasta el `];` de cierre).
+
+### Paso 3 — Reemplazar el bloque del grid por `cargarProductos()`
+
+Usa **Ctrl + F** en VS Code y busca `gridTarjetas`. Verás este bloque:
+
+```javascript
+const gridTarjetas = document.querySelector('#grid-tarjetas');
+if (gridTarjetas) {
+  gridTarjetas.innerHTML = productos.map(crearTarjeta).join('');
+}
+```
+
+**Selecciona esas 4 líneas completas y reemplázalas por esto:**
+
+```javascript
+// ================================================
+// S08: CARGAR PRODUCTOS DESDE JSON
+// Reemplaza el array hardcodeado de S03.
+// Funciona en: productos.html (donde existe #grid-tarjetas)
+// Requiere: data/productos.json con el array de productos
+// ================================================
+
+async function cargarProductos() {
+  const grid = document.querySelector('#grid-tarjetas');
+  if (!grid) return; // solo correr en páginas que tienen el grid
+
+  try {
+    // PASO 1 — Pedir el archivo JSON al servidor
+    // await pausa aquí hasta que llegue la respuesta (el sobre)
+    const respuesta = await fetch('data/productos.json');
+
+    // PASO 2 — Leer el contenido del JSON como array JavaScript
+    // .json() también es asíncrono → necesita su propio await
+    const productos = await respuesta.json();
+
+    // PASO 3 — Renderizar las tarjetas en el grid
+    // productos.map(crearTarjeta) convierte cada objeto en HTML
+    grid.innerHTML = productos.map(crearTarjeta).join('');
+
+    // PASO 4 — Reconectar todo lo que depende de las tarjetas
+    // Estas funciones buscan .tarjeta en el HTML → deben ir DESPUÉS del innerHTML
+    registrarBotonesModal(); // botones "Ver más" → abrir modal
+    registrarBadgeHover();   // badge "✓ Disponible" al hacer hover
+    registrarBuscador();     // filtro de búsqueda en tiempo real
+
+  } catch (error) {
+    // Si fetch falla: muestra mensaje visible en la página
+    grid.innerHTML = `
+      <div class="error-fetch">
+        <p>⚠️ No se pudieron cargar los productos.</p>
+        <button onclick="cargarProductos()" class="btn btn-primario">Reintentar</button>
       </div>
-    </div>
-  </header>
+    `;
+    console.error('Error al cargar productos:', error);
+  }
+}
+
+cargarProductos(); // ejecutar al cargar la página
 ```
 
-Agrega en `css/styles.css`, al final del archivo después del bloque `/* ── BADGE HOVER TARJETA · S06 ── */` — **solo si no existe ya `.header-acciones`**:
+### Paso 4 — Reconectar todo lo que depende de las tarjetas
 
-```css
-.header-acciones {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-```
+Cuando `cargarProductos()` crea las tarjetas con `fetch()`, cualquier código que busque `.tarjeta` en el HTML y se haya ejecutado antes ya encontró 0 tarjetas. Eso rompe el modal, el badge hover y el buscador.
 
-### Paso 2 — Estilos del badge en `css/styles.css`
+La solución: convertir ese código en funciones y llamarlas desde `cargarProductos()` **después de** `grid.innerHTML`.
 
-```css
-/* ===== S07: BADGE CARRITO ===== */
-.carrito-badge-contenedor {
-  position: relative;
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-}
+**Parte A — Reestructurar el bloque `if (modal)`**
 
-.carrito-badge-contenedor > span:first-child {
-  font-size: 18px;
-  line-height: 1;
-}
-
-.carrito-badge {
-  position: absolute;
-  top: -8px;
-  right: -10px;
-  background: var(--color-primario);
-  color: white;
-  border-radius: 50%;
-  width: 20px;
-  height: 20px;
-  font-size: 11px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
-}
-
-.carrito-badge.oculto {
-  display: none;
-}
-```
-
-### Paso 3 — Funciones del carrito en `js/main.js`
-
-Al final de `main.js`, agrega:
+Usa **Ctrl + F** y busca `const modal`. Selecciona todo desde esa línea hasta el `}` de cierre y reemplázalo por esto:
 
 ```javascript
-// ===== S07: CARRITO DE COMPRAS =====
+const modal = document.querySelector('#modal-producto');
 
-// Lee el carrito de LocalStorage (o devuelve array vacío)
-function leerCarrito() {
-  const guardado = localStorage.getItem('carrito');
-  return guardado ? JSON.parse(guardado) : [];
+if (modal) {
+  const btnCerrar = document.querySelector('#modal-cerrar');
+
+  // Llena el modal con los datos del producto y lo hace visible
+  // tarjeta.dataset lee los atributos data-* del <article class="tarjeta">
+  function abrirModal(tarjeta) {
+    document.querySelector('#modal-icono').textContent  = tarjeta.dataset.icono  || '📦';
+    document.querySelector('#modal-titulo').textContent = tarjeta.dataset.nombre || 'Producto';
+    document.querySelector('#modal-desc').textContent   = tarjeta.dataset.desc   || '';
+    document.querySelector('#modal-precio').textContent = tarjeta.dataset.precio || '';
+    modal.classList.add('visible');
+  }
+
+  // Se llama desde cargarProductos() DESPUÉS de grid.innerHTML
+  // porque los botones .btn-accion los crea crearTarjeta() dinámicamente
+  function registrarBotonesModal() {
+    document.querySelectorAll('.btn-accion').forEach(function(boton) {
+      boton.addEventListener('click', function() {
+        abrirModal(boton.closest('.tarjeta'));
+      });
+    });
+  }
+
+  // Cerrar con el botón ×
+  btnCerrar.addEventListener('click', function() {
+    modal.classList.remove('visible');
+  });
+
+  // Cerrar al hacer clic fuera del modal
+  modal.addEventListener('click', function(e) {
+    if (e.target === modal) modal.classList.remove('visible');
+  });
+
+  // Cerrar con la tecla Escape
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') modal.classList.remove('visible');
+  });
 }
+```
 
-// Guarda el carrito en LocalStorage y actualiza el badge
-function guardarCarrito(carrito) {
-  localStorage.setItem('carrito', JSON.stringify(carrito));
-  actualizarBadge();
-}
+**Parte B — Convertir badge hover y buscador en funciones**
 
-// ✏️ COMPLETA: Actualiza el número que aparece en el badge del header
-function actualizarBadge() {
-  const badge = document.getElementById('carrito-badge');
-  if (!badge) return; // el badge puede no existir en todas las páginas
-  
-  const carrito = leerCarrito();
-  badge.textContent = carrito.length;
-  
-  badge.classList.remove('oculto');
-}
+Busca con **Ctrl + F** el texto `EJERCICIO 3 · BADGE HOVER`. Reemplaza el bloque del badge y el buscador por estas dos funciones:
 
-// ✏️ COMPLETA: Agrega un producto al carrito
-function agregarAlCarrito(producto) {
-  const carrito = leerCarrito();
-  carrito.push(producto);
-  guardarCarrito(carrito); // guarda y actualiza badge
-  
-  // Feedback visual al usuario
-  alert(`✅ ${producto.nombre} agregado al carrito`);
-}
-
-// Conectar el botón "Agregar al carrito" del modal
-const btnModalCarrito = document.querySelector('.modal-btn-carrito');
-if (btnModalCarrito) {
-  btnModalCarrito.addEventListener('click', function() {
-    // Leer los datos del producto desde el modal
-    const producto = {
-      nombre: document.getElementById('modal-titulo').textContent,
-      precio: document.getElementById('modal-precio').textContent,
-      icono: document.getElementById('modal-icono').textContent,
-      fecha:  new Date().toLocaleDateString('es-CO')
-    };
-    
-    agregarAlCarrito(producto);
-    
-    // Cerrar el modal
-    document.getElementById('modal-producto').classList.remove('visible');
+```javascript
+// Muestra el badge "✓ Disponible" al pasar el mouse por una tarjeta
+// Se llama desde cargarProductos() — las tarjetas deben existir primero
+function registrarBadgeHover() {
+  document.querySelectorAll('.tarjeta').forEach(function(tarjeta) {
+    const badge = tarjeta.querySelector('.badge-disponible');
+    if (badge) {
+      tarjeta.addEventListener('mouseover', function() { badge.classList.add('visible'); });
+      tarjeta.addEventListener('mouseout',  function() { badge.classList.remove('visible'); });
+    }
   });
 }
 
-// Inicializar el badge al cargar la página
-actualizarBadge();
-
-// Clic en el badge → ir a carrito.html
-const badgeContenedor = document.querySelector('.carrito-badge-contenedor');
-if (badgeContenedor) {
-  badgeContenedor.addEventListener('click', function() {
-    window.location.href = 'carrito.html';
+// Filtra las tarjetas en tiempo real según lo que escribe el usuario
+// Se llama desde cargarProductos() — las tarjetas deben existir primero
+function registrarBuscador() {
+  const buscador = document.querySelector('#buscador');
+  if (!buscador) return; // solo correr en páginas con buscador
+  buscador.addEventListener('input', function() {
+    // .toLowerCase() para que "macbook" encuentre "MacBook"
+    const termino = buscador.value.toLowerCase();
+    document.querySelectorAll('.tarjeta').forEach(function(tarjeta) {
+      const nombre = tarjeta.dataset.nombre.toLowerCase();
+      // muestra u oculta según si el nombre incluye el término buscado
+      tarjeta.style.display = nombre.includes(termino) ? 'block' : 'none';
+    });
   });
+}
+```
+
+**Parte C — Llamar las tres funciones desde `cargarProductos()`**
+
+Usa **Ctrl + F** y busca `grid.innerHTML = productos.map`. Verás esta línea seguida de `registrarBotonesModal()`. Agrega las dos llamadas nuevas justo debajo:
+
+```javascript
+grid.innerHTML = productos.map(crearTarjeta).join('');
+
+registrarBotonesModal();
+registrarBadgeHover();   // ← agregar
+registrarBuscador();     // ← agregar
+```
+
+> **¿Por qué aquí?** Porque en este punto las tarjetas ya existen en el HTML. Cualquier función que busque `.tarjeta` debe ejecutarse después de esta línea.
+
+### Paso 5 — CSS del mensaje de error en `css/styles.css`
+
+Al final del archivo, después del bloque `/* ===== S07: PÁGINA CARRITO ===== */`:
+
+```css
+/* ===== S08: ERROR FETCH ===== */
+.error-fetch {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 60px 32px;
+  color: #ef4444;
+  font-size: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
 }
 ```
 
 ### Caso de prueba — Ejercicio 2
 
-1. Carga la página → badge muestra `0` (o está oculto)
-2. Abre el modal de cualquier producto → clic en "🛒 Agregar al carrito"
-3. Badge cambia a `1` ✓
-4. **Recarga la página** → badge sigue mostrando `1` ✓
-5. Navega a `productos.html` → badge sigue mostrando `1` ✓
-6. Agrega otro producto → badge muestra `2` ✓
-7. Abre DevTools → Application → Local Storage → verás `carrito: [...]` ✓
+1. Recarga con Live Server → los 6 productos aparecen igual que antes ✓
+2. DevTools → **Network** → verás una petición a `data/productos.json` con status `200` ✓
+3. Abre el modal de un producto → funciona igual ✓
+4. El buscador sigue funcionando ✓
+5. **Prueba real:** abre `data/productos.json`, agrega un producto 7 → recarga → aparece **sin tocar `main.js`** ✓
 
 ---
 
-## Ejercicio 3: Página del carrito (40 min)
+## Ejercicio 3: Simular y manejar un error (20 min)
 
-### Lo que vas a construir
+### Paso 1 — Romper la ruta intencionalmente
 
-Una página `carrito.html` que lee el LocalStorage y muestra los productos que el usuario ha agregado.
-
-### Paso 0 — Agrega los estilos en `css/styles.css`
-
-Al final del archivo, después del bloque `/* ===== S07: BADGE CARRITO ===== */`:
-
-```css
-/* ===== S07: PÁGINA CARRITO ===== */
-.seccion-carrito {
-  max-width: 800px;
-  margin: 60px auto;
-  padding: 0 32px;
-}
-
-.carrito-item {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  background: var(--color-blanco);
-  border: 1px solid var(--color-borde);
-  border-radius: var(--radio);
-  padding: 16px 20px;
-  margin-bottom: 12px;
-}
-
-.carrito-item-icono { font-size: 32px; }
-.carrito-item-info  { flex: 1; }
-.carrito-item-nombre { font-weight: 700; color: var(--color-oscuro); }
-.carrito-item-precio { color: var(--color-primario); font-weight: 700; }
-.carrito-item-fecha  { font-size: 12px; color: var(--color-texto-suave); }
-
-.carrito-acciones {
-  display: flex;
-  gap: 12px;
-  margin-top: 24px;
-  justify-content: center;
-}
-
-.carrito-vacio {
-  text-align: center;
-  padding: 40px;
-  color: var(--color-texto-suave);
-}
-```
-
-### Paso 1 — Crea `carrito.html`
-
-Copia la estructura de `index.html` (header, footer, scripts). Reemplaza el `<main>` con:
-
-```html
-<main>
-  <section class="seccion-carrito" id="seccion-carrito">
-    <div class="seccion-header">
-      <h2>🛒 Mi carrito</h2>
-      <p id="carrito-resumen">Cargando...</p>
-    </div>
-    
-    <!-- ✏️ La lista de productos se genera con JavaScript -->
-    <div id="lista-carrito"></div>
-    
-    <!-- Botón para vaciar el carrito -->
-    <div class="carrito-acciones">
-      <button id="btn-vaciar" class="btn btn-secundario">🗑️ Vaciar carrito</button>
-      <a href="index.html" class="btn btn-primario">Seguir comprando</a>
-    </div>
-  </section>
-</main>
-```
-
-### Paso 2 — Función para mostrar el carrito en `js/main.js`
-
-Agrega al final del archivo, después del bloque `// ===== S07: CARRITO DE COMPRAS =====`:
+En `cargarProductos()`, cambia temporalmente:
 
 ```javascript
-// ===== S07: PÁGINA CARRITO =====
-
-// ✏️ COMPLETA: Solo ejecutar si estamos en carrito.html
-function mostrarPaginaCarrito() {
-  const lista = document.getElementById('lista-carrito');
-  const resumen = document.getElementById('carrito-resumen');
-  if (!lista) return; // no estamos en carrito.html
-  
-  const carrito = leerCarrito();
-  
-  if (carrito.length === 0) {
-    resumen.textContent = 'Tu carrito está vacío';
-    lista.innerHTML = '<p class="carrito-vacio">No hay productos en el carrito. <a href="index.html">Ver productos →</a></p>';
-    return;
-  }
-  
-  resumen.textContent = `${carrito.length} producto(s) en el carrito`;
-  
-  lista.innerHTML = ''; // limpiar antes de renderizar
-  
-  carrito.forEach(function(producto, indice) {
-    const item = document.createElement('div');
-    item.classList.add('carrito-item');
-    item.innerHTML = `
-      <span class="carrito-item-icono">${producto.icono}</span>
-      <div class="carrito-item-info">
-        <div class="carrito-item-nombre">${producto.nombre}</div>
-        <div class="carrito-item-precio">${producto.precio}</div>
-        <div class="carrito-item-fecha">Agregado: ${producto.fecha}</div>
-      </div>
-      <button class="btn-eliminar" data-indice="${indice}">Eliminar</button>
-    `;
-    lista.appendChild(item);
-  });
-  
-  // Conectar los botones "Eliminar"
-  document.querySelectorAll('.btn-eliminar').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      const indice = parseInt(this.dataset.indice);
-      const carritoActual = leerCarrito();
-      carritoActual.splice(indice, 1); // eliminar ese índice
-      guardarCarrito(carritoActual);
-      mostrarPaginaCarrito(); // re-renderizar
-    });
-  });
-}
-
-// Botón vaciar carrito
-const btnVaciar = document.getElementById('btn-vaciar');
-if (btnVaciar) {
-  btnVaciar.addEventListener('click', function() {
-    if (confirm('¿Seguro que quieres vaciar el carrito?')) {
-      localStorage.removeItem('carrito');
-      actualizarBadge();
-      mostrarPaginaCarrito();
-    }
-  });
-}
-
-mostrarPaginaCarrito(); // llamar al cargar
+const respuesta = await fetch('data/productos-ROTO.json'); // no existe
 ```
 
-### Caso de prueba — Ejercicio 3
+### Paso 2 — Recargar
 
-1. Agrega 2 o 3 productos desde `index.html`
-2. Abre `carrito.html` → deben aparecer los productos ✓
-3. Haz clic en "Eliminar" en un producto → desaparece ✓
-4. Badge del header se actualiza ✓
-5. Haz clic en "Vaciar carrito" → lista vacía y badge en `0` ✓
-6. Recarga `carrito.html` → sigue vacío ✓
+Guarda el archivo y recarga con Live Server. En la página debe aparecer:
+
+```
+⚠️ No se pudieron cargar los productos.
+[Reintentar]
+```
+
+Si ves las tarjetas normales, verifica que guardaste el archivo después de cambiar la URL.
+
+### Paso 3 — Verificar en consola
+
+Abre DevTools → pestaña **Console**. Verás algo similar a:
+
+```
+GET http://127.0.0.1:5500/data/productos-ROTO.json 404 (Not Found)
+Error al cargar productos: TypeError: Failed to fetch
+```
+
+La primera línea es el navegador reportando que el archivo no existe (404). La segunda es el `console.error()` de tu `catch`.
+
+### Paso 4 — Restaurar y probar "Reintentar"
+
+Vuelve la ruta a `'data/productos.json'`. Haz clic en "Reintentar" — los productos deben cargar correctamente.
+
+### Caso de prueba
+
+- Ruta rota → mensaje visible en la página ✓
+- Consola muestra el error técnico ✓
+- "Reintentar" → productos cargan ✓
 
 ---
 
 ## Checklist de autoevaluación
 
-Antes del commit, verifica:
-
-- [ ] El botón de tema aparece en el header de todas las páginas
-- [ ] Activar el tema oscuro y recargar → sigue oscuro
-- [ ] Agregar producto al carrito → badge se actualiza en tiempo real
-- [ ] Navegar a `productos.html` → badge mantiene el número
-- [ ] Recargar cualquier página → badge mantiene el número
-- [ ] `carrito.html` muestra los productos correctamente
-- [ ] Eliminar un producto desde `carrito.html` → badge se actualiza
-- [ ] Vaciar el carrito → todo se resetea
-- [ ] DevTools → Application → Local Storage → se ven las claves `tema` y `carrito`
-- [ ] Git commit hecho: `feat: tema oscuro, carrito y badge con LocalStorage - S07`
+- [ ] `data/productos.json` creado con los 6 productos
+- [ ] Array hardcodeado eliminado de `main.js`
+- [ ] `cargarProductos()` usa `async/await` y `try/catch`
+- [ ] Productos cargan igual al recargar
+- [ ] DevTools → Network → `productos.json` con status 200
+- [ ] Modal sigue funcionando después del fetch
+- [ ] Buscador sigue funcionando
+- [ ] Error se muestra en la página con botón "Reintentar"
+- [ ] Agregar producto 7 al JSON → aparece sin tocar `main.js`
+- [ ] Git commit: `feat: productos desde JSON con fetch() - S08`
 
 ---
 
@@ -518,11 +498,11 @@ Antes del commit, verifica:
 
 | Error | Causa | Solución |
 |-------|-------|----------|
-| `localStorage.getItem('carrito')` devuelve `"[object Object]"` | Guardaste el array sin `JSON.stringify` | Usa `JSON.stringify(carrito)` al guardar |
-| `JSON.parse(...)` lanza un error | El valor guardado no es JSON válido | Verifica en DevTools qué hay guardado. Usa `localStorage.clear()` y prueba de nuevo |
-| Badge no se actualiza al agregar | `actualizarBadge()` no se llama desde `guardarCarrito` | Verifica que `guardarCarrito` llame a `actualizarBadge()` |
-| El tema no persiste | `aplicarTemaGuardado()` no se llama al cargar | Verifica que esté al final de `main.js` fuera de cualquier función |
-| Badge muestra `NaN` | `carrito.length` de un valor que no es array | Agrega `|| []` en `leerCarrito`: `return guardado ? JSON.parse(guardado) : []` |
+| `Failed to fetch` | Archivo abierto con `file://` | Usar Live Server — botón "Go Live" |
+| Productos no aparecen, sin error | `registrarBotonesModal` no definida | Verificar que esté dentro del bloque `if (modal)` |
+| `registrarBotonesModal is not defined` | Función fuera del scope del `if (modal)` | Moverla dentro del bloque `if (modal)` |
+| Error de sintaxis en JSON | Coma extra, comillas simples o comentarios | Validar en jsonlint.com |
+| Modal no abre tras el fetch | `registrarBotonesModal()` no se llama en `cargarProductos()` | Verificar que se llama después del `grid.innerHTML` |
 
 ---
 
@@ -530,22 +510,14 @@ Antes del commit, verifica:
 
 | Término | Definición |
 |---------|------------|
-| **LocalStorage** | API del navegador para guardar datos de forma persistente por dominio |
-| **SessionStorage** | Similar a LocalStorage pero solo dura mientras la pestaña está abierta |
-| **setItem / getItem** | Métodos para escribir y leer en LocalStorage |
-| **JSON.stringify** | Convierte un objeto/array JavaScript en texto JSON para almacenar |
-| **JSON.parse** | Convierte texto JSON de vuelta en objeto/array JavaScript |
-| **Persistencia** | Capacidad de un dato de sobrevivir a recargas o cierres del navegador |
-| **Badge** | Contador circular pequeño que aparece sobre un ícono (ej: notificaciones) |
-
----
-
-## Recursos
-
-- [MDN — LocalStorage](https://developer.mozilla.org/es/docs/Web/API/Window/localStorage)
-- [MDN — JSON.stringify](https://developer.mozilla.org/es/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify)
-- [MDN — JSON.parse](https://developer.mozilla.org/es/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse)
-- DevTools → Application → Local Storage (para inspeccionar en tiempo real)
+| **fetch()** | Función del navegador para hacer peticiones HTTP |
+| **async** | Marca una función como asíncrona — habilita el uso de `await` |
+| **await** | Pausa la función hasta que la promesa se resuelve |
+| **JSON** | Formato de texto para intercambiar datos. JavaScript Object Notation |
+| **try/catch** | `try` intenta ejecutar el código, `catch` captura cualquier error |
+| **API** | Interfaz que expone datos para que otros programas los consuman |
+| **HTTP 200** | Código de respuesta: "petición exitosa" |
+| **Network tab** | Pestaña de DevTools que muestra todas las peticiones HTTP de la página |
 
 ---
 
