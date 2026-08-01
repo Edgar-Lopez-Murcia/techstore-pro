@@ -1034,6 +1034,8 @@ body.tema-oscuro .dato-item h4 { color: #f1f5f9; }
 body.tema-oscuro .miembro h3 { color: #f1f5f9; } 
 body.tema-oscuro .campo label { color: #f1f5f9; } 
 
+body.tema-oscuro .btn-eliminar { background-color: #e13a3a;} 
+
 .header-acciones {
   display: flex;
   align-items: center;

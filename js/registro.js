@@ -166,7 +166,7 @@ function mostrarRegistroGuardado() {
       <p><strong>Email:</strong> ${usuario.email}</p>
       <p><strong>Ubicación:</strong> ${usuario.municipio}, ${usuario.departamento}</p>
       <p><strong>Fecha:</strong> ${usuario.fecha}</p>
-      <button onclick="localStorage.removeItem('usuario-registro'); location.reload();" 
+      <button class="btn-cerrar-sesion" onclick="localStorage.removeItem('usuario-registro'); location.reload();" 
               style="margin-top:12px;padding:8px 16px;background:#ef4444;color:white;border:none;border-radius:6px;cursor:pointer;">
         Cerrar sesión
       </button>
