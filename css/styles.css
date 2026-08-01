@@ -1024,6 +1024,7 @@ body.tema-oscuro .tarjeta-nombre { color: #f1f5f9; }
 body.tema-oscuro .modal-caja  { background: #1e293b; color: #f1f5f9; }
 body.tema-oscuro .modal-titulo { color: #f1f5f9; }
 body.tema-oscuro .modal-desc   { color: #94a3b8; }
+body.tema-oscuro .tarjeta-registro  { background: #1e293b; color: #f1f5f9; }
 
 body.tema-oscuro .form-contacto h2 { color: #f1f5f9; } 
 
@@ -1031,6 +1032,7 @@ body.tema-oscuro .mision-texto h2 { color: #f1f5f9; }
 body.tema-oscuro .valor h3 { color: #f1f5f9; } 
 body.tema-oscuro .dato-item h4 { color: #f1f5f9; }
 body.tema-oscuro .miembro h3 { color: #f1f5f9; } 
+body.tema-oscuro .campo label { color: #f1f5f9; } 
 
 .header-acciones {
   display: flex;
@@ -1090,6 +1092,17 @@ body.tema-oscuro .miembro h3 { color: #f1f5f9; }
   margin-bottom: 12px;
 }
 
+.btn-eliminar {
+  background: rgb(233, 13, 13);
+  color: white;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .2s, transform .2s;
+}
 .carrito-item-icono { font-size: 32px; }
 .carrito-item-info  { flex: 1; }
 .carrito-item-nombre { font-weight: 700; color: var(--color-oscuro); }
@@ -1120,4 +1133,21 @@ body.tema-oscuro .miembro h3 { color: #f1f5f9; }
   flex-direction: column;
   align-items: center;
   gap: 16px;
+}
+
+.registro-exito {
+  display:none;
+  margin-top:20px;
+  padding:16px;
+  background:#dcfce7;
+  border-radius:8px;
+  color:#166534;
+}
+
+.tarjeta-registro {
+  background:#f0f9ff;
+  border:1px solid #bae6fd;
+  border-radius:12px;
+  padding:20px;
+  margin-top:24px;
 }

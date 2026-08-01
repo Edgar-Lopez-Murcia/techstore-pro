@@ -1,5 +1,5 @@
-# Guía del Estudiante — Sesión 08
-## Fetch API: Consumir datos desde un archivo JSON
+# Guía del Estudiante — Sesión 09
+## API Colombia: Departamentos y Municipios en el Registro
 
 **Competencia:** 220501096 — Construcción de Software  
 **Ficha:** 3229944 ADSO — Garzón, Huila  
@@ -10,487 +10,523 @@
 
 ## Objetivos de aprendizaje
 
-1. Entender por qué `fetch()` es asíncrono y qué significa eso
-2. Usar `async/await` para leer un archivo JSON
-3. Migrar los productos de TechStore Pro de un array hardcodeado a `data/productos.json`
-4. Manejar errores con `try/catch` — mostrar mensaje visible si el fetch falla
+1. Consumir una API REST pública real sin API key
+2. Encadenar dos fetch dependientes (departamentos → municipios)
+3. Poblar `<select>` dinámicamente con datos de una API
+4. Guardar la selección en LocalStorage junto con el registro
+5. Manejar estados de carga y errores visibles al usuario
 
 ---
 
 ## Conceptos clave
 
-### El problema actual
+### ¿Qué es api-colombia.com?
 
-Los 6 productos viven hardcodeados en `main.js`:
+Una API REST pública y gratuita con datos oficiales de Colombia: departamentos, municipios, presidentes, aeropuertos y más. No requiere API key — puedes hacer fetch directamente desde el navegador.
+
+```
+GET https://api-colombia.com/api/v1/Department
+→ devuelve array con los 33 departamentos
+
+GET https://api-colombia.com/api/v1/Department/{id}/cities
+→ devuelve array con los municipios de ese departamento
+```
+
+### Fetch encadenado
+
+Cuando el resultado de un fetch determina el siguiente, los encadenamos:
 
 ```javascript
-const productos = [
-  { id: 1, nombre: "MacBook Pro M3", ... },
-  ...
-];
+// Paso 1 — cargar departamentos al abrir la página
+const deptos = await fetch('https://api-colombia.com/api/v1/Department');
+
+// Paso 2 — cuando el usuario elige un departamento, cargar sus municipios
+const municipios = await fetch(`https://api-colombia.com/api/v1/Department/${id}/cities`);
 ```
 
-Esto funciona, pero tiene un problema: **cada vez que quieras agregar o editar un producto, tienes que modificar el JavaScript**. En el mundo real los datos viven separados del código — en archivos JSON que cualquier persona puede editar sin tocar el código.
+### Estado de carga
 
-### ¿Qué es fetch()?
-
-`fetch()` es la función del navegador para pedir datos a un servidor — o a un archivo local. Es **asíncrona**: no congela la página mientras espera la respuesta.
-
-```
-Sin fetch:  JS carga → productos ya están en el array → se muestran
-Con fetch:  JS carga → header/footer aparecen → fetch pide datos → productos aparecen
-```
-
-### async / await
-
-Cuando una operación tarda (como leer un archivo), usamos `async/await` para esperar el resultado sin congelar la página:
+Mientras el fetch está en curso, el usuario debe ver algo — no una pantalla vacía:
 
 ```javascript
-// Con async/await — fácil de leer
-async function cargarProductos() {
-  const respuesta = await fetch('data/productos.json'); // esperar respuesta
-  const datos     = await respuesta.json();             // esperar conversión a array
-  console.log(datos); // array de productos listo para usar
-}
+selectDepto.innerHTML = '<option>Cargando departamentos...</option>';
+// ... fetch ...
+// cuando llegan los datos, reemplazar con las opciones reales
 ```
-
-### ⚠️ Live Server obligatorio
-
-`fetch()` no funciona con `file://` (doble clic al archivo). Siempre abre el proyecto con el botón **"Go Live"** de VS Code.
 
 ---
 
-## Ejercicio 1: Tu primer fetch desde la consola (20 min)
+## Lo que vas a construir
 
-Antes de tocar el proyecto, practica en la consola con una API pública gratuita.
+Un formulario de registro en TechStore Pro donde:
+- El campo **Departamento** se carga desde la API al abrir la página
+- Al elegir un departamento, el campo **Municipio** se actualiza automáticamente
+- Al enviar, los datos se guardan en LocalStorage
 
-### Paso 1 — Fetch básico
+---
 
-Con TechStore Pro abierto en Live Server, abre DevTools → pestaña **Console**.
+## Ejercicio 1: Explorar la API desde la consola (15 min)
 
-Pega este código y presiona **Enter**:
+Con TechStore Pro abierto en Live Server, abre DevTools → **Console**.
 
-```javascript
-fetch('https://jsonplaceholder.typicode.com/users/1')
-  .then(function(r) { return r.json(); })
-  .then(function(datos) { console.log(datos); });
-```
+### Paso 1 — Ver todos los departamentos
 
-En la consola verás esto (es normal):
-
-```
-Promise {<pending>}
-{id: 1, name: 'Leanne Graham', username: 'Bret', email: 'Sincere@april.biz', ...}
-```
-
-**¿Qué significa cada línea?**
-
-- **`Promise {<pending>}`** — aparece inmediatamente al presionar Enter. Significa "la petición salió, aún no llegó la respuesta". La promesa está en estado *pendiente*. Es normal y esperado.
-- **`{id: 1, name: 'Leanne Graham', ...}`** — llega medio segundo después. Es la respuesta del servidor convertida a objeto JavaScript. Ahí están los datos reales.
-
-**¿De dónde salen esos datos?**
-
-`jsonplaceholder.typicode.com` es una API pública y gratuita para practicar. Tiene usuarios, posts y comentarios inventados. Tu navegador envió una petición HTTP real a ese servidor y él respondió con el usuario 1 en formato JSON — exactamente lo mismo que va a pasar con `data/productos.json` en tu proyecto, solo que los datos vivirán en tu propio archivo.
-
-### Paso 2 — Con async/await
-
-Ahora escribe lo mismo pero con la sintaxis moderna. Pega esto en la consola y presiona **Enter**:
+Pega esto y presiona **Enter**:
 
 ```javascript
-async function probar() {
-  const respuesta = await fetch('https://jsonplaceholder.typicode.com/users/1');
-  const datos = await respuesta.json();
-  console.log('Nombre:', datos.name);
-  console.log('Email:', datos.email);
-}
-probar();
-```
-
-En la consola verás:
-
-```
-Promise {<pending>}
-Nombre: Leanne Graham
-Email: Sincere@april.biz
-```
-
-**¿Qué cambió respecto al Paso 1?**
-
-- Ya no hay `.then()` encadenados — el código se lee de arriba a abajo como si fuera síncrono.
-- `await` pausa la función en esa línea hasta que llega la respuesta, sin bloquear el resto de la página.
-- Puedes acceder a propiedades directamente: `datos.name`, `datos.email`, `datos.address`, etc.
-- Esta es la forma que usarás en el proyecto con `cargarProductos()`.
-
-### Paso 3 — Lista de posts (varios registros a la vez)
-
-Ahora pide varios registros a la vez y recorre el array con `forEach`. Pega esto en la consola:
-
-```javascript
-async function verPosts() {
-  const respuesta = await fetch('https://jsonplaceholder.typicode.com/posts');
-  const posts = await respuesta.json();
-  console.log('Total de posts:', posts.length);
-  posts.slice(0, 3).forEach(function(post) {
-    console.log('Título:', post.title);
+async function verDepartamentos() {
+  const respuesta = await fetch('https://api-colombia.com/api/v1/Department');
+  const departamentos = await respuesta.json();
+  console.log('Total:', departamentos.length);
+  departamentos.slice(0, 5).forEach(function(d) {
+    console.log(d.id, '-', d.name);
   });
 }
-verPosts();
+verDepartamentos();
 ```
 
-En la consola verás:
-
+Verás algo como:
 ```
-Total de posts: 100
-Título: sunt aut facere repellat provident occaecati excepturi optio reprehenderit
-Título: qui est esse
-Título: ea molestiae et quasi iste unde qui adipisci
+Total: 33
+3 - Arauca
+4 - Atlantico
+5 - Bogota D.C.
+6 - Bolivar
+7 - Boyaca
 ```
 
-**¿Por qué es importante este ejemplo?**
+### Paso 2 — Ver municipios de un departamento
 
-- `posts` es un **array de 100 objetos** — igual que `productos` va a ser un array de objetos en tu proyecto.
-- `.slice(0, 3)` toma solo los primeros 3 para no llenar la consola.
-- `.forEach()` recorre el array y accede a cada propiedad — exactamente lo que hace `crearTarjeta()` con cada producto.
+Busca el id de Huila (es el 18). Pega esto:
+
+```javascript
+async function verMunicipios() {
+  const respuesta = await fetch('https://api-colombia.com/api/v1/Department/18/cities');
+  const municipios = await respuesta.json();
+  console.log('Municipios de Huila:', municipios.length);
+  municipios.forEach(function(m) {
+    console.log(m.id, '-', m.name);
+  });
+}
+verMunicipios();
+```
+
+Debes ver Garzón, Neiva, Pitalito y todos los municipios del Huila.
+
+### Paso 3 — Consultar un departamento por su id
+
+Ahora pide los datos completos de un solo departamento. Cambia el número 18 por el id de cualquier departamento que quieras consultar:
+
+```javascript
+async function verDepartamento() {
+  const respuesta = await fetch('https://api-colombia.com/api/v1/Department/18');
+  const depto = await respuesta.json();
+  console.log('Nombre:', depto.name);
+  console.log('Población:', depto.population);
+  console.log('Superficie km²:', depto.surface);
+  console.log('Región:', depto.region);
+  console.log('Municipios:', depto.cities.length);
+}
+verDepartamento();
+```
+
+Verás algo como:
+```
+Nombre: Huila
+Población: 1073000
+Superficie km²: 19890
+Región: Andina
+Municipios: 37
+```
+
+**¿Qué aprendemos aquí?**
+
+- La URL `/Department/18` devuelve **un solo objeto** — no un array — con todos los datos del departamento.
+- El mismo id que usamos para pedir municipios sirve para pedir información del departamento.
+- `depto.cities.length` muestra cuántos municipios tiene sin necesidad de un segundo fetch.
+
+**Reto:** cambia el 18 por otro id del Paso 1 y consulta tu departamento favorito.
 
 ### Caso de prueba
-
-- Ves un objeto con datos en la consola ✓
-- `datos.name` muestra un nombre ✓
-- `posts.length` muestra 100 ✓
-- Los 3 títulos aparecen en consola ✓
-- No hay errores rojos ✓
+- `departamentos.length` muestra 33 ✓
+- Ves ids y nombres en consola ✓
+- Los municipios del Huila incluyen "Garzon" ✓
+- `depto.name` muestra "Huila" ✓
+- `depto.population` muestra un número ✓
 
 ---
 
-## Ejercicio 2: Migrar productos a JSON (70 min)
+## Ejercicio 2: Formulario de registro con selects dinámicos (90 min)
 
 ### Lo que vas a construir
 
-Los productos salen de `main.js` y van a `data/productos.json`. La función `cargarProductos()` los carga con `fetch()`. Todo lo demás — modal, carrito, buscador — sigue igual.
+Una página `registro.html` con un formulario que carga departamentos y municipios desde la API.
 
-### Paso 1 — Crear `data/productos.json`
+### Paso 1A — Partir de una página existente
 
-En la carpeta raíz del proyecto crea la carpeta `data/` y dentro el archivo `productos.json`:
+Abre `contacto.html` → **clic derecho en el explorador de VS Code → Copiar** → pega en la misma carpeta → renómbrala `registro.html`.
 
-```
-plantilla_proyecto/
-├── data/
-│   └── productos.json   ← nuevo
-├── css/
-├── js/
-├── index.html
-└── ...
+Abre `registro.html` y haz estos dos cambios:
+
+1. Cambia el `<title>`:
+```html
+<title>Registro — TechStore Pro</title>
 ```
 
-Contenido de `data/productos.json`:
+2. En el nav, cambia el `class="activo"` al enlace de Registro y agrega el enlace:
+```html
+<a href="contacto.html">Contacto</a>
+<a href="registro.html" class="activo">Registro</a>
+```
+> Recuerda quitar `class="activo"` del enlace donde lo tenías antes.
 
-```json
-[
-  {
-    "id": 1,
-    "icono": "💻",
-    "nombre": "MacBook Pro M3",
-    "descripcion": "Chip M3, 16 GB RAM, 512 GB SSD, pantalla Liquid Retina.",
-    "precio": "$8.999.000",
-    "imagen": "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400&h=250&fit=crop&q=80"
-  },
-  {
-    "id": 2,
-    "icono": "📱",
-    "nombre": "iPhone 15 Pro",
-    "descripcion": "Chip A17 Pro, titanio, Dynamic Island, cámara 48 MP.",
-    "precio": "$4.299.000",
-    "imagen": "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=400&h=250&fit=crop&q=80"
-  },
-  {
-    "id": 3,
-    "icono": "🎮",
-    "nombre": "RTX 4070 Super",
-    "descripcion": "12 GB GDDR6X, DLSS 3, Ray Tracing. Gaming 4K fluido.",
-    "precio": "$2.399.000",
-    "imagen": "https://images.unsplash.com/photo-1591488320449-011701bb6704?w=400&h=250&fit=crop&q=80"
-  },
-  {
-    "id": 4,
-    "icono": "💼",
-    "nombre": "Dell XPS 15",
-    "descripcion": "Intel i7 13va gen, 32 GB RAM, pantalla OLED 4K.",
-    "precio": "$6.799.000",
-    "imagen": "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&h=250&fit=crop&q=80"
-  },
-  {
-    "id": 5,
-    "icono": "📲",
-    "nombre": "Samsung Galaxy S24",
-    "descripcion": "Snapdragon 8 Gen 3, IA Galaxy, cámara 200 MP.",
-    "precio": "$3.199.000",
-    "imagen": "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=250&fit=crop&q=80"
-  },
-  {
-    "id": 6,
-    "icono": "🖥️",
-    "nombre": "Monitor LG UltraWide 34\"",
-    "descripcion": "Panel IPS curvo, 3440×1440, 144 Hz, HDR10.",
-    "precio": "$1.899.000",
-    "imagen": "https://images.unsplash.com/photo-1586210579191-33b45e38fa2c?w=400&h=250&fit=crop&q=80"
-  }
-]
+---
+
+### Paso 1B — Limpiar el `<main>`
+
+Borra todo el contenido que hay dentro de `<main>...</main>` — el formulario de contacto completo. Déjalo así:
+
+```html
+<main>
+
+</main>
 ```
 
-> **Diferencias JS → JSON:**
-> - Las claves llevan comillas dobles: `"nombre"` no `nombre`
-> - No hay `const`, no hay `;`, no hay comentarios
-> - Sin coma después del último objeto `}`
+---
 
-### Paso 2 — Eliminar el array de `main.js`
+### Paso 1C — Construir el formulario campo por campo
 
-Abre `js/main.js`. **Elimina** el bloque completo `const productos = [...]` (los 6 productos, desde la línea `const productos = [` hasta el `];` de cierre).
+Dentro del `<main>` pega esta estructura base:
 
-### Paso 3 — Reemplazar el bloque del grid por `cargarProductos()`
+```html
+<section class="seccion-formulario" style="max-width:600px;margin:60px auto;padding:0 24px;">
+  <h1 style="margin-bottom:32px;">Crear cuenta</h1>
 
-Usa **Ctrl + F** en VS Code y busca `gridTarjetas`. Verás este bloque:
+  <form id="form-registro" novalidate>
 
-```javascript
-const gridTarjetas = document.querySelector('#grid-tarjetas');
-if (gridTarjetas) {
-  gridTarjetas.innerHTML = productos.map(crearTarjeta).join('');
-}
+    <!-- CAMPO NOMBRE — completo para que veas el patrón -->
+    <div class="campo">
+      <label for="reg-nombre">Nombre completo</label>
+      <input type="text" id="reg-nombre" placeholder="Tu nombre">
+      <span class="error" id="error-reg-nombre"></span>
+    </div>
+
+    <!-- ✏️ CAMPO EMAIL — construye tú siguiendo el mismo patrón que Nombre -->
+    <!-- label: "Correo electrónico" -->
+    <!-- id del input: reg-email | id del error: error-reg-email -->
+    <!-- type: email | placeholder: correo@ejemplo.com -->
+
+    <!-- CAMPO DEPARTAMENTO — completo: es un select, no un input -->
+    <div class="campo">
+      <label for="reg-departamento">Departamento</label>
+      <!-- JavaScript llenará este select con los 33 departamentos -->
+      <select id="reg-departamento">
+        <option value="">Cargando departamentos...</option>
+      </select>
+      <span class="error" id="error-reg-departamento"></span>
+    </div>
+
+    <!-- ✏️ CAMPO MUNICIPIO — construye tú siguiendo el mismo patrón que Departamento -->
+    <!-- label: texto "Municipio" | for="reg-municipio" -->
+    <!-- id del select: reg-municipio | id del error: error-reg-municipio -->
+    <!-- el select lleva el atributo: disabled -->
+    <!-- option inicial: value="" | texto: "Primero elige un departamento" -->
+
+  </form>
+
+  <div id="resumen-registro" style="display:none;"></div>
+
+</section>
 ```
 
-**Selecciona esas 4 líneas completas y reemplázalas por esto:**
+**¿Qué debes completar tú?**
+
+1. El campo **Email** — mismo patrón que Nombre pero con `type="email"`
+2. El campo **Municipio** — mismo patrón que Departamento pero con `disabled` y texto inicial diferente
+
+---
+
+### Paso 1D — Cerrar el formulario
+
+Justo antes del `</form>` agrega el botón y el mensaje de éxito:
+
+```html
+    <button type="submit" class="btn btn-primario" style="width:100%;margin-top:16px;">
+      Crear cuenta
+    </button>
+
+    <div id="registro-exito" style="display:none;margin-top:20px;padding:16px;background:#dcfce7;border-radius:8px;color:#166534;">
+      ✅ Cuenta creada correctamente. <a href="index.html">Ir a la tienda →</a>
+    </div>
+```
+
+Y antes del `</body>` agrega el script de registro **después** de `main.js`:
+
+```html
+  
+  <script src="js/registro.js"></script>
+```
+
+### Caso de prueba — Paso 1
+
+- `registro.html` abre con Go Live y se ve el header y footer igual que las demás páginas ✓
+- El nav muestra "Registro" en azul ✓
+- El formulario tiene 4 campos: Nombre, Email, Departamento, Municipio ✓
+- El select de Municipio aparece deshabilitado ✓
+
+### Paso 2 — Agregar enlace "Registro" en el nav de todas las páginas
+
+El nav de `registro.html` ya tiene el enlace. Ahora debes agregarlo en las demás páginas para que aparezca en toda la navegación.
+
+Abre cada uno de estos archivos y busca con **Ctrl+F**: `contacto.html">Contacto`. Agrega el enlace justo debajo:
+
+```html
+<a href="contacto.html">Contacto</a>
+<a href="registro.html">Registro</a>  ← agregar esta línea
+```
+
+Páginas donde debes hacer este cambio:
+- `index.html`
+- `productos.html`
+- `nosotros.html`
+- `contacto.html`
+- `carrito.html`
+
+> ⚠️ **¿Por qué el enlace "Registro" no se ve azul cuando estás en registro.html?**
+>
+> El enlace activo necesita `class="activo"` — pero **solo en la página donde estás**. En `registro.html` el enlace debe ser:
+> ```html
+> <a href="registro.html" class="activo">Registro</a>
+> ```
+> En las demás páginas va **sin** `class="activo"`:
+> ```html
+> <a href="registro.html">Registro</a>
+> ```
+
+### Paso 3 — Crear `js/registro.js`
+
+Crea el archivo `js/registro.js` con este contenido:
 
 ```javascript
 // ================================================
-// S08: CARGAR PRODUCTOS DESDE JSON
-// Reemplaza el array hardcodeado de S03.
-// Funciona en: productos.html (donde existe #grid-tarjetas)
-// Requiere: data/productos.json con el array de productos
+// S09: REGISTRO CON API COLOMBIA
+// Carga departamentos y municipios desde api-colombia.com
+// Guarda el registro en LocalStorage
 // ================================================
 
-async function cargarProductos() {
-  const grid = document.querySelector('#grid-tarjetas');
-  if (!grid) return; // solo correr en páginas que tienen el grid
+const URL_API = 'https://api-colombia.com/api/v1';
 
+const selectDepto  = document.querySelector('#reg-departamento');
+const selectMuni   = document.querySelector('#reg-municipio');
+const formRegistro = document.querySelector('#form-registro');
+
+// ── PASO 1: Cargar departamentos al abrir la página ──────────────────────────
+// Se ejecuta automáticamente — el usuario ve la lista al entrar al formulario
+async function cargarDepartamentos() {
   try {
-    // PASO 1 — Pedir el archivo JSON al servidor
-    // await pausa aquí hasta que llegue la respuesta (el sobre)
-    const respuesta = await fetch('data/productos.json');
+    // Mostrar estado de carga mientras espera la API
+    selectDepto.innerHTML = '<option value="">Cargando departamentos...</option>';
 
-    // PASO 2 — Leer el contenido del JSON como array JavaScript
-    // .json() también es asíncrono → necesita su propio await
-    const productos = await respuesta.json();
+    const respuesta     = await fetch(`${URL_API}/Department`);
+    const departamentos = await respuesta.json();
 
-    // PASO 3 — Renderizar las tarjetas en el grid
-    // productos.map(crearTarjeta) convierte cada objeto en HTML
-    grid.innerHTML = productos.map(crearTarjeta).join('');
+    // Ordenar alfabéticamente por nombre
+    departamentos.sort(function(a, b) { return a.name.localeCompare(b.name); });
 
-    // PASO 4 — Reconectar todo lo que depende de las tarjetas
-    // Estas funciones buscan .tarjeta en el HTML → deben ir DESPUÉS del innerHTML
-    registrarBotonesModal(); // botones "Ver más" → abrir modal
-    registrarBadgeHover();   // badge "✓ Disponible" al hacer hover
-    registrarBuscador();     // filtro de búsqueda en tiempo real
+    // Opción inicial vacía + una opción por departamento
+    selectDepto.innerHTML = '<option value="">-- Selecciona un departamento --</option>';
+    departamentos.forEach(function(depto) {
+      const opcion = document.createElement('option');
+      opcion.value       = depto.id;       // usamos el id para pedir municipios
+      opcion.textContent = depto.name;
+      selectDepto.appendChild(opcion);
+    });
 
   } catch (error) {
-    // Si fetch falla: muestra mensaje visible en la página
-    grid.innerHTML = `
-      <div class="error-fetch">
-        <p>⚠️ No se pudieron cargar los productos.</p>
-        <button onclick="cargarProductos()" class="btn btn-primario">Reintentar</button>
-      </div>
-    `;
-    console.error('Error al cargar productos:', error);
+    // Si la API falla, mostrar mensaje claro al usuario
+    selectDepto.innerHTML = '<option value="">Error al cargar. Recarga la página.</option>';
+    console.error('Error cargando departamentos:', error);
   }
 }
 
-cargarProductos(); // ejecutar al cargar la página
-```
+// ── PASO 2: Cargar municipios cuando el usuario elige un departamento ─────────
+// Se ejecuta cada vez que cambia el select de departamento
+async function cargarMunicipios(idDepartamento) {
+  try {
+    // Deshabilitar y mostrar estado de carga
+    selectMuni.disabled = true;
+    selectMuni.innerHTML = '<option value="">Cargando municipios...</option>';
 
-### Paso 4 — Reconectar todo lo que depende de las tarjetas
+    const respuesta  = await fetch(`${URL_API}/Department/${idDepartamento}/cities`);
+    const municipios = await respuesta.json();
 
-Cuando `cargarProductos()` crea las tarjetas con `fetch()`, cualquier código que busque `.tarjeta` en el HTML y se haya ejecutado antes ya encontró 0 tarjetas. Eso rompe el modal, el badge hover y el buscador.
+    // Ordenar alfabéticamente
+    municipios.sort(function(a, b) { return a.name.localeCompare(b.name); });
 
-La solución: convertir ese código en funciones y llamarlas desde `cargarProductos()` **después de** `grid.innerHTML`.
-
-**Parte A — Reestructurar el bloque `if (modal)`**
-
-Usa **Ctrl + F** y busca `const modal`. Selecciona todo desde esa línea hasta el `}` de cierre y reemplázalo por esto:
-
-```javascript
-const modal = document.querySelector('#modal-producto');
-
-if (modal) {
-  const btnCerrar = document.querySelector('#modal-cerrar');
-
-  // Llena el modal con los datos del producto y lo hace visible
-  // tarjeta.dataset lee los atributos data-* del <article class="tarjeta">
-  function abrirModal(tarjeta) {
-    document.querySelector('#modal-icono').textContent  = tarjeta.dataset.icono  || '📦';
-    document.querySelector('#modal-titulo').textContent = tarjeta.dataset.nombre || 'Producto';
-    document.querySelector('#modal-desc').textContent   = tarjeta.dataset.desc   || '';
-    document.querySelector('#modal-precio').textContent = tarjeta.dataset.precio || '';
-    modal.classList.add('visible');
-  }
-
-  // Se llama desde cargarProductos() DESPUÉS de grid.innerHTML
-  // porque los botones .btn-accion los crea crearTarjeta() dinámicamente
-  function registrarBotonesModal() {
-    document.querySelectorAll('.btn-accion').forEach(function(boton) {
-      boton.addEventListener('click', function() {
-        abrirModal(boton.closest('.tarjeta'));
-      });
+    // Habilitar el select y llenar con municipios
+    selectMuni.innerHTML = '<option value="">-- Selecciona un municipio --</option>';
+    municipios.forEach(function(muni) {
+      const opcion = document.createElement('option');
+      opcion.value       = muni.name;
+      opcion.textContent = muni.name;
+      selectMuni.appendChild(opcion);
     });
+    selectMuni.disabled = false;
+
+  } catch (error) {
+    selectMuni.innerHTML = '<option value="">Error al cargar municipios.</option>';
+    console.error('Error cargando municipios:', error);
+  }
+}
+
+// ── PASO 3: Escuchar cambio en el select de departamento ─────────────────────
+// Cada vez que el usuario cambia el departamento, cargar sus municipios
+selectDepto.addEventListener('change', function() {
+  const idSeleccionado = selectDepto.value;
+
+  if (!idSeleccionado) {
+    // Si elige la opción vacía, resetear municipios
+    selectMuni.innerHTML = '<option value="">Primero elige un departamento</option>';
+    selectMuni.disabled  = true;
+    return;
   }
 
-  // Cerrar con el botón ×
-  btnCerrar.addEventListener('click', function() {
-    modal.classList.remove('visible');
-  });
+  cargarMunicipios(idSeleccionado);
+});
 
-  // Cerrar al hacer clic fuera del modal
-  modal.addEventListener('click', function(e) {
-    if (e.target === modal) modal.classList.remove('visible');
-  });
+// ── PASO 4: Validar y guardar el registro en LocalStorage ────────────────────
+if (formRegistro) {
+  formRegistro.addEventListener('submit', function(evento) {
+    evento.preventDefault();
 
-  // Cerrar con la tecla Escape
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') modal.classList.remove('visible');
-  });
-}
-```
+    const nombre      = document.querySelector('#reg-nombre').value.trim();
+    const email       = document.querySelector('#reg-email').value.trim();
+    const departamento = selectDepto.options[selectDepto.selectedIndex].text;
+    const municipio   = selectMuni.value;
+    let hayErrores    = false;
 
-**Parte B — Convertir badge hover y buscador en funciones**
+    // Validar nombre
+    if (nombre.length < 3) {
+      document.querySelector('#error-reg-nombre').textContent = 'Escribe tu nombre completo';
+      hayErrores = true;
+    } else {
+      document.querySelector('#error-reg-nombre').textContent = '';
+    }
 
-Busca con **Ctrl + F** el texto `EJERCICIO 3 · BADGE HOVER`. Reemplaza el bloque del badge y el buscador por estas dos funciones:
+    // Validar email
+    if (!email.includes('@') || email.length < 5) {
+      document.querySelector('#error-reg-email').textContent = 'Ingresa un correo válido';
+      hayErrores = true;
+    } else {
+      document.querySelector('#error-reg-email').textContent = '';
+    }
 
-```javascript
-// Muestra el badge "✓ Disponible" al pasar el mouse por una tarjeta
-// Se llama desde cargarProductos() — las tarjetas deben existir primero
-function registrarBadgeHover() {
-  document.querySelectorAll('.tarjeta').forEach(function(tarjeta) {
-    const badge = tarjeta.querySelector('.badge-disponible');
-    if (badge) {
-      tarjeta.addEventListener('mouseover', function() { badge.classList.add('visible'); });
-      tarjeta.addEventListener('mouseout',  function() { badge.classList.remove('visible'); });
+    // Validar departamento
+    if (!selectDepto.value) {
+      document.querySelector('#error-reg-departamento').textContent = 'Selecciona un departamento';
+      hayErrores = true;
+    } else {
+      document.querySelector('#error-reg-departamento').textContent = '';
+    }
+
+    // Validar municipio
+    if (!municipio) {
+      document.querySelector('#error-reg-municipio').textContent = 'Selecciona un municipio';
+      hayErrores = true;
+    } else {
+      document.querySelector('#error-reg-municipio').textContent = '';
+    }
+
+    if (!hayErrores) {
+      // Guardar en LocalStorage
+      const usuario = {
+        nombre,
+        email,
+        departamento,
+        municipio,
+        fecha: new Date().toLocaleDateString('es-CO')
+      };
+      localStorage.setItem('usuario-registro', JSON.stringify(usuario));
+
+      // Mostrar mensaje de éxito
+      document.querySelector('#registro-exito').style.display = 'block';
+      formRegistro.reset();
+      selectMuni.innerHTML = '<option value="">Primero elige un departamento</option>';
+      selectMuni.disabled  = true;
     }
   });
 }
 
-// Filtra las tarjetas en tiempo real según lo que escribe el usuario
-// Se llama desde cargarProductos() — las tarjetas deben existir primero
-function registrarBuscador() {
-  const buscador = document.querySelector('#buscador');
-  if (!buscador) return; // solo correr en páginas con buscador
-  buscador.addEventListener('input', function() {
-    // .toLowerCase() para que "macbook" encuentre "MacBook"
-    const termino = buscador.value.toLowerCase();
-    document.querySelectorAll('.tarjeta').forEach(function(tarjeta) {
-      const nombre = tarjeta.dataset.nombre.toLowerCase();
-      // muestra u oculta según si el nombre incluye el término buscado
-      tarjeta.style.display = nombre.includes(termino) ? 'block' : 'none';
-    });
-  });
-}
-```
-
-**Parte C — Llamar las tres funciones desde `cargarProductos()`**
-
-Usa **Ctrl + F** y busca `grid.innerHTML = productos.map`. Verás esta línea seguida de `registrarBotonesModal()`. Agrega las dos llamadas nuevas justo debajo:
-
-```javascript
-grid.innerHTML = productos.map(crearTarjeta).join('');
-
-registrarBotonesModal();
-registrarBadgeHover();   // ← agregar
-registrarBuscador();     // ← agregar
-```
-
-> **¿Por qué aquí?** Porque en este punto las tarjetas ya existen en el HTML. Cualquier función que busque `.tarjeta` debe ejecutarse después de esta línea.
-
-### Paso 5 — CSS del mensaje de error en `css/styles.css`
-
-Al final del archivo, después del bloque `/* ===== S07: PÁGINA CARRITO ===== */`:
-
-```css
-/* ===== S08: ERROR FETCH ===== */
-.error-fetch {
-  grid-column: 1 / -1;
-  text-align: center;
-  padding: 60px 32px;
-  color: #ef4444;
-  font-size: 18px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-}
+// ── Ejecutar al cargar la página ─────────────────────────────────────────────
+cargarDepartamentos();
 ```
 
 ### Caso de prueba — Ejercicio 2
 
-1. Recarga con Live Server → los 6 productos aparecen igual que antes ✓
-2. DevTools → **Network** → verás una petición a `data/productos.json` con status `200` ✓
-3. Abre el modal de un producto → funciona igual ✓
-4. El buscador sigue funcionando ✓
-5. **Prueba real:** abre `data/productos.json`, agrega un producto 7 → recarga → aparece **sin tocar `main.js`** ✓
+1. Abre `registro.html` con Live Server → el select de Departamento carga automáticamente ✓
+2. Elige un departamento → el select de Municipio se habilita con sus municipios ✓
+3. Elige "Huila" → aparece "Garzon", "Neiva", "Pitalito", etc. ✓
+4. Llena el formulario y envía → mensaje de éxito ✓
+5. DevTools → **Application → LocalStorage** → verás el objeto `usuario-registro` ✓
+6. Recarga la página → los selects vuelven a cargarse desde la API ✓
 
 ---
 
-## Ejercicio 3: Simular y manejar un error (20 min)
+## Ejercicio 3: Mostrar los datos guardados (25 min)
 
-### Paso 1 — Romper la ruta intencionalmente
+Después de un registro exitoso, muestra un resumen de los datos guardados.
 
-En `cargarProductos()`, cambia temporalmente:
+### Paso 1 — Leer el registro desde LocalStorage
+
+Agrega esta función al final de `js/registro.js`:
 
 ```javascript
-const respuesta = await fetch('data/productos-ROTO.json'); // no existe
+// ── BONUS: Mostrar registro guardado si existe ────────────────────────────────
+function mostrarRegistroGuardado() {
+  const guardado = localStorage.getItem('usuario-registro');
+  if (!guardado) return;
+
+  const usuario = JSON.parse(guardado);
+  const resumen = document.querySelector('#resumen-registro');
+  if (!resumen) return;
+
+  resumen.innerHTML = `
+    <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:12px;padding:20px;margin-top:24px;">
+      <h3 style="margin-bottom:12px;color:#0369a1;">👤 Cuenta registrada</h3>
+      <p><strong>Nombre:</strong> ${usuario.nombre}</p>
+      <p><strong>Email:</strong> ${usuario.email}</p>
+      <p><strong>Ubicación:</strong> ${usuario.municipio}, ${usuario.departamento}</p>
+      <p><strong>Fecha:</strong> ${usuario.fecha}</p>
+      <button onclick="localStorage.removeItem('usuario-registro'); location.reload();" 
+              style="margin-top:12px;padding:8px 16px;background:#ef4444;color:white;border:none;border-radius:6px;cursor:pointer;">
+        Cerrar sesión
+      </button>
+    </div>
+  `;
+  resumen.style.display = 'block';
+}
+
+mostrarRegistroGuardado();
 ```
-
-### Paso 2 — Recargar
-
-Guarda el archivo y recarga con Live Server. En la página debe aparecer:
-
-```
-⚠️ No se pudieron cargar los productos.
-[Reintentar]
-```
-
-Si ves las tarjetas normales, verifica que guardaste el archivo después de cambiar la URL.
-
-### Paso 3 — Verificar en consola
-
-Abre DevTools → pestaña **Console**. Verás algo similar a:
-
-```
-GET http://127.0.0.1:5500/data/productos-ROTO.json 404 (Not Found)
-Error al cargar productos: TypeError: Failed to fetch
-```
-
-La primera línea es el navegador reportando que el archivo no existe (404). La segunda es el `console.error()` de tu `catch`.
-
-### Paso 4 — Restaurar y probar "Reintentar"
-
-Vuelve la ruta a `'data/productos.json'`. Haz clic en "Reintentar" — los productos deben cargar correctamente.
 
 ### Caso de prueba
-
-- Ruta rota → mensaje visible en la página ✓
-- Consola muestra el error técnico ✓
-- "Reintentar" → productos cargan ✓
+- Si hay registro guardado → aparece el resumen al cargar la página ✓
+- Clic en "Cerrar sesión" → borra el registro y recarga ✓
 
 ---
 
 ## Checklist de autoevaluación
 
-- [ ] `data/productos.json` creado con los 6 productos
-- [ ] Array hardcodeado eliminado de `main.js`
-- [ ] `cargarProductos()` usa `async/await` y `try/catch`
-- [ ] Productos cargan igual al recargar
-- [ ] DevTools → Network → `productos.json` con status 200
-- [ ] Modal sigue funcionando después del fetch
-- [ ] Buscador sigue funcionando
-- [ ] Error se muestra en la página con botón "Reintentar"
-- [ ] Agregar producto 7 al JSON → aparece sin tocar `main.js`
-- [ ] Git commit: `feat: productos desde JSON con fetch() - S08`
+- [ ] `registro.html` creado con los dos `<select>`
+- [ ] `js/registro.js` creado con `cargarDepartamentos()` y `cargarMunicipios()`
+- [ ] Al cargar la página → select de Departamento se llena automáticamente
+- [ ] Al elegir departamento → select de Municipio se habilita con sus municipios
+- [ ] Validación muestra errores si faltan campos
+- [ ] Registro se guarda en LocalStorage al enviar
+- [ ] DevTools → Application → LocalStorage → objeto `usuario-registro` visible
+- [ ] Resumen del registro aparece si ya hay datos guardados
+- [ ] Enlace "Registro" en el nav de las páginas principales
+- [ ] Git commit: `feat: registro con API Colombia departamentos municipios - S09`
 
 ---
 
@@ -498,11 +534,11 @@ Vuelve la ruta a `'data/productos.json'`. Haz clic en "Reintentar" — los produ
 
 | Error | Causa | Solución |
 |-------|-------|----------|
-| `Failed to fetch` | Archivo abierto con `file://` | Usar Live Server — botón "Go Live" |
-| Productos no aparecen, sin error | `registrarBotonesModal` no definida | Verificar que esté dentro del bloque `if (modal)` |
-| `registrarBotonesModal is not defined` | Función fuera del scope del `if (modal)` | Moverla dentro del bloque `if (modal)` |
-| Error de sintaxis en JSON | Coma extra, comillas simples o comentarios | Validar en jsonlint.com |
-| Modal no abre tras el fetch | `registrarBotonesModal()` no se llama en `cargarProductos()` | Verificar que se llama después del `grid.innerHTML` |
+| Select de departamento no carga | Abrió con `file://` | Usar Live Server |
+| `Failed to fetch` | Sin internet o API caída | Verificar conexión |
+| Municipios no aparecen al cambiar departamento | Event listener no registrado | Verificar `selectDepto.addEventListener('change', ...)` |
+| Select de municipio sigue deshabilitado | `selectMuni.disabled = false` no se ejecuta | Verificar que el `catch` no está capturando un error silencioso |
+| LocalStorage no guarda | Formulario no pasa validación | Revisar campos con errores en rojo |
 
 ---
 
@@ -510,14 +546,12 @@ Vuelve la ruta a `'data/productos.json'`. Haz clic en "Reintentar" — los produ
 
 | Término | Definición |
 |---------|------------|
-| **fetch()** | Función del navegador para hacer peticiones HTTP |
-| **async** | Marca una función como asíncrona — habilita el uso de `await` |
-| **await** | Pausa la función hasta que la promesa se resuelve |
-| **JSON** | Formato de texto para intercambiar datos. JavaScript Object Notation |
-| **try/catch** | `try` intenta ejecutar el código, `catch` captura cualquier error |
-| **API** | Interfaz que expone datos para que otros programas los consuman |
-| **HTTP 200** | Código de respuesta: "petición exitosa" |
-| **Network tab** | Pestaña de DevTools que muestra todas las peticiones HTTP de la página |
+| **API REST** | Servicio web que responde a peticiones HTTP con datos JSON |
+| **Fetch encadenado** | Segundo fetch que depende del resultado del primero |
+| **select dinámico** | `<select>` cuyas opciones se crean con JavaScript, no en el HTML |
+| **`disabled`** | Propiedad que impide interactuar con un elemento del formulario |
+| **`document.createElement`** | Crea un elemento HTML desde JavaScript |
+| **`appendChild`** | Agrega un elemento como hijo de otro en el DOM |
 
 ---
 
