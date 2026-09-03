@@ -9,7 +9,7 @@ const router = express.Router();
 // 2. POST /api/auth/registro - Crear cuenta nueva
 router.post('/registro', async (req, res) => {
     try {
-        const { nombre, email, password, rol } = req.body;
+        const { nombre, email, password, rol, departamento, municipio } = req.body;
 
         // Verificar que el email no exista ya
         const existe = await Usuario.findOne({ email });
@@ -28,7 +28,9 @@ router.post('/registro', async (req, res) => {
             nombre,
             email,
             password: hash,
-            rol
+            rol,
+            departamento,
+            municipio
         });
 
         res.status(201).json({
