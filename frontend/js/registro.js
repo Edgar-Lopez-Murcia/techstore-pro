@@ -240,24 +240,3 @@ function aplicarTemaGuardado() {
   }
 }
 
-// ✏️ COMPLETA: Alterna entre claro y oscuro y guarda la preferencia
-function toggleTema() {
-  const esOscuro = document.body.classList.toggle('tema-oscuro');
-  const btn = document.getElementById('btn-tema');
-  
-  if (esOscuro) {
-    localStorage.setItem('tema', 'oscuro');
-    if (btn) btn.textContent = '☀️';
-  } else {
-    localStorage.setItem('tema', 'claro');
-    if (btn) btn.textContent = '🌙';
-  }
-}
-
-// Conectar el botón y aplicar el tema al cargar
-const btnTema = document.getElementById('btn-tema');
-if (btnTema) {
-  btnTema.addEventListener('click', toggleTema);
-}
-
-aplicarTemaGuardado();
