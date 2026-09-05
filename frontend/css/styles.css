@@ -116,6 +116,7 @@ a:hover { color: var(--color-secundario); }
   align-items: center;
 }
 
+
 .nav-menu a {
   color: rgba(255,255,255,0.7);
   font-size: 14px;
@@ -135,6 +136,19 @@ a:hover { color: var(--color-secundario); }
   color: white;
   background: var(--color-primario);
 }
+
+/* Botón Login en el header - derecha */
+.btn-login-header {
+  font-size: 13px;
+  font-weight: 700;
+  color: white;
+  background: var(--color-primario);
+  padding: 7px 18px;
+  border-radius: 8px;
+  transition: opacity .2s;
+  white-space: nowrap;
+}
+.btn-login-header:hover { opacity: .85; }
 
 /* Botón hamburguesa — visible solo en móvil */
 .menu-toggle {
@@ -771,6 +785,7 @@ a:hover { color: var(--color-secundario); }
     position: absolute;
     top: var(--alto-header);
     left: 0; right: 0;
+    transform: none;
     background: var(--color-oscuro);
     flex-direction: column;
     padding: 16px;
@@ -1153,3 +1168,23 @@ body.tema-oscuro .btn-eliminar { background-color: #e13a3a;}
   padding:20px;
   margin-top:24px;
 }
+.carrito-item-img {
+  width: 70px;
+  height: 70px;
+  object-fit: cover;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+/* Botón Login en el header - derecha */
+.btn-login-header {
+  font-size: 13px;
+  font-weight: 700;
+  color: white;
+  background: var(--color-primario);
+  padding: 7px 18px;
+  border-radius: 8px;
+  transition: opacity .2s;
+  white-space: nowrap;
+}
+.btn-login-header:hover { opacity: .85; }
