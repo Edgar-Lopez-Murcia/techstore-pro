@@ -162,7 +162,7 @@ function crearTarjeta(producto) {
         <p class="tarjeta-desc">${producto.descripcion}</p>
         <div class="tarjeta-pie">
           <span class="tarjeta-precio">${producto.precio}</span>
-          <button class="btn-accion">Ver más</button>
+          <a href="producto.html?id=${producto._id || producto.id || ''}" class="btn-accion">Ver más</a>
         </div>
       </div>
     </article>
@@ -240,11 +240,13 @@ if (modal) {
   // porque los botones .btn-accion los crea crearTarjeta() dinámicamente
   function registrarBotonesModal() {
     document.querySelectorAll('.btn-accion').forEach(function(boton) {
-      boton.addEventListener('click', function() {
-        abrirModal(boton.closest('.tarjeta'));
+
+      if (boton.tagName === 'A') return;
+        boton.addEventListener('click', function() {
+          abrirModal(boton.closest('.tarjeta'));
+        });
       });
-    });
-  }
+    }
 
   // Cerrar con el botón ×
   btnCerrar.addEventListener('click', function() {
