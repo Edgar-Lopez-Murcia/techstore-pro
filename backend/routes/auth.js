@@ -94,5 +94,24 @@ router.post('/login', async (req, res) => {
     }
 });
 
+// 4. GET /api/auth/perfil - Obtener datos del usuario logueado
+const verificarToken = require('../middlewares/auth');
+
+router.get('/perfil', verificarToken, async (req, res) => {
+    try {
+        const usuario = await Usuario.findById(req.usuario.id).select('-password');
+        if (!usuario) {
+            return res.status(404).json({
+                error: 'Usuario no encontrado'
+            });
+        }
+        res.json(usuario);
+    } catch (err) {
+        res.status(500).json({
+            error: err.message
+        });
+    }
+});
+
 // 4. Exportar el router
 module.exports = router;

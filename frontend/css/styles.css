@@ -1498,3 +1498,208 @@ Aparece al hacer clic en el nombre del usuario logueado
 .tema-oscuro .menu-separador             { background: #374151; }
 .tema-oscuro .btn-cerrar-sesion          { color: #f87171; }
 .tema-oscuro .btn-cerrar-sesion:hover     { background: #450a0a; }
+
+/*==========================================================================
+  S17d: PERFIL DE USUARIO (perfil.html)
+==========================================================================*/
+
+.perfil-contenedor {
+    max-width: 520px;
+    margin: 60px auto;
+    padding: 40px 32px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    text-align: center;
+}
+
+.perfil-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: var(--color-primario);
+    color: white;
+    font-size: 2rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+}
+
+.perfil-nombre {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 8px;
+}
+
+.perfil-rol {
+    display: inline-block;
+    padding: 4px 12px;
+    background: #ede9fe;
+    color: #6d28d9;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 28px;
+}
+
+.perfil-info {
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 28px;
+}
+
+.perfil-campo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: #f9fafb;
+    border-radius: 10px;
+    gap: 12px;
+}
+
+.perfil-etiqueta { font-size: 0.85rem; color: #6b7280; white-space: nowrap; }
+.perfil-valor    { font-size: 0.95rem; font-weight: 600; color: #111827; text-align: right; }
+.perfil-acciones { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+.perfil-cargando,
+.perfil-error { text-align: center; padding: 80px 24px; color: #6b7280; }
+
+/* — Modo oscuro — */
+.tema-oscuro .perfil-contenedor { background: #1f2937; }
+.tema-oscuro .perfil-nombre     { color: #f9fafb; }
+.tema-oscuro .perfil-rol        { background: #4c1d95; color: #ddd6fe; }
+.tema-oscuro .perfil-campo      { background: #111827; }
+.tema-oscuro .perfil-etiqueta   { color: #9ca3af; }
+.tema-oscuro .perfil-valor      { color: #f9fafb; }
+
+
+/*==========================================================================
+  S17e: SECCIÓN DE COMENTARIOS (producto.html)
+==========================================================================*/
+
+.comentarios-seccion {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 20px;
+    text-align: left;
+}
+
+.comentarios-seccion h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 24px;
+    border-bottom: 2px solid #f3f4f6;
+    padding-bottom: 8px;
+}
+
+/* Tarjetas de comentarios existentes */
+.lista-comentarios {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 40px;
+}
+
+.comentario-tarjeta {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px;
+    transition: transform 0.2s ease;
+}
+
+.comentario-tarjeta:hover {
+    transform: translateY(-2px);
+}
+
+/* Formulario para dejar comentarios */
+#formulario-comentario-wrap {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 28px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+}
+
+#formulario-comentario-wrap h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #111827;
+}
+
+.calificacion-input {
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.calificacion-input label {
+    font-weight: 600;
+    color: #4b5563;
+}
+
+.calificacion-input select {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    background: white;
+    font-size: 0.95rem;
+    cursor: pointer;
+}
+
+.comentario-input textarea {
+    width: 100%;
+    height: 120px;
+    padding: 14px;
+    border-radius: 10px;
+    border: 1px solid #d1d5db;
+    resize: vertical;
+    font-family: inherit;
+    font-size: 0.95rem;
+    margin-bottom: 20px;
+    box-sizing: border-box;
+}
+
+.comentario-input textarea:focus,
+.calificacion-input select:focus {
+    outline: none;
+    border-color: var(--color-primario, #6d28d9);
+    box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.15);
+}
+
+/* Bloque de advertencia si no ha iniciado sesión */
+.advertencia-bloque {
+    background: #fffbeb;
+    border: 1px solid #fef3c7;
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.05);
+}
+
+.advertencia-bloque p {
+    color: #b45309;
+    font-weight: 600;
+    margin: 0 0 16px 0;
+}
+
+/* — Soporte para Modo Oscuro — */
+.tema-oscuro .comentarios-seccion h2 { color: #f9fafb; border-bottom-color: #374151; }
+.tema-oscuro .comentario-tarjeta { background: #1f2937; border-color: #374151; }
+.tema-oscuro .comentario-tarjeta p { color: #f3f4f6 !important; }
+.tema-oscuro .comentario-tarjeta p style { color: #9ca3af !important; }
+.tema-oscuro #formulario-comentario-wrap { background: #1f2937; border-color: #374151; }
+.tema-oscuro #formulario-comentario-wrap h3 { color: #f9fafb; }
+.tema-oscuro .calificacion-input label { color: #d1d5db; }
+.tema-oscuro .calificacion-input select { background: #111827; border-color: #4b5563; color: white; }
+.tema-oscuro .comentario-input textarea { background: #111827; border-color: #4b5563; color: white; }
+.tema-oscuro .advertencia-bloque { background: #78350f; border-color: #92400e; }
+.tema-oscuro .advertencia-bloque p { color: #fef3c7; }

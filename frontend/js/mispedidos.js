@@ -32,7 +32,7 @@ async function cargarMisPedidos() {
             const items = (p.producto || []).map(function(i) {
                 return `<li><span>${i.producto ? i.producto.nombre : 'Producto'} * ${i.cantidad || 1} </span></li>`;
             }).join('');
-            const total = p.total ? '$' + Number(p.total).toLocaleString(es-CO) : '-';
+            const total = p.total ? '$' + Number(p.total).toLocaleString('es-CO') : '-';
             return `<div class="pedido-card">
                 <div class="pedido-encabezado">
                     <div><div class="pedido-id">ID: ${p._id}</div><div class="pedido-fecha">${fecha}</div></div>
@@ -42,7 +42,7 @@ async function cargarMisPedidos() {
                 <div class="pedido-total">Total: ${total}</div>
             </div>`
             
-        }).json('');
+        }).join('');
     } catch (e) {
         lista.innerHTML = '<p style="color: #dc2626;text-align: center;padding: 40px 0; ">❌ No se pudieron cargar los pedidos. Verifica que el servidor estécorriendo con npm run dev.</p>'
     }

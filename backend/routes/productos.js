@@ -23,7 +23,7 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req,res) =>{
     try {
         // req.params.id lee el valor que llega en La URL después de 7API7productos/
-        const producto = await Producto.findById(req.params.id);
+        const producto = await Producto.findById(req.params.id).populate('comentarios.usuario', 'nombre'); // trae el nombre del usuario que comentó
 
         // Si MongoDB no encontró nada con ese _id, productos es null 404
         if (!producto) return res.status(404).json({ error: 'Producto no encontrado'});
@@ -74,5 +74,26 @@ router.delete('/:id',  verificarToken,verificarAdmin, async (req,res) => {
     }
 });
 
-// 6. Exportar
+// 6. POST /:id/comentarios - cualquier usuario logueado puede comentar
+router.post('/:id/comentarios', verificarToken, async (req,res) => {
+    try {
+        const producto = await Producto.findById(req.params.id);
+        if (!producto) return res.status(404).json({ error: 'Producto no encontrado'});
+
+        const nuevoComentario = await {
+            usuario: req.usuario.id,
+            comentario: req.body.comentario,
+            calificacion: req.body.calificacion
+        };
+
+        producto.comentarios.push(nuevoComentario);
+        await producto.save();
+
+        res.status(201).json(nuevoComentario);
+    } catch (err) {
+        res.status(400).json({ error: err.message});
+    }
+});
+
+// 7. Exportar
 module.exports = router;
