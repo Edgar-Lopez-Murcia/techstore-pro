@@ -30,7 +30,7 @@ async function cargarMisPedidos() {
             const estado = p.estado || 'pendiente';
             const etiqueta = { pendiente:'⏳ Pendiente', enviado:'🚚 Enviado', entregado:'✅ Entregado', cancelado:'❌ Cancelado'}[estado] || estado;
             const items = (p.producto || []).map(function(i) {
-                return `<li><span>${i.producto ? i.producto-nombre : 'Producto'} * ${i.cantidad || 1} </span></li>`;
+                return `<li><span>${i.producto ? i.producto.nombre : 'Producto'} * ${i.cantidad || 1} </span></li>`;
             }).join('');
             const total = p.total ? '$' + Number(p.total).toLocaleString(es-CO) : '-';
             return `<div class="pedido-card">
