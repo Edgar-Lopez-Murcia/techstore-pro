@@ -1201,6 +1201,7 @@ Aplica solo en producto.html
   margin: 40px auto;
   padding: 0 24px;
   display: flex;
+  gap: 48px;
   grid-area: 48px;
   flex-wrap: wrap;
   align-items: flex-start;
@@ -1398,3 +1399,102 @@ Aplica solo en mispedidos.html
 .tema-oscuro .badge-estado.enviado   { background: #1e3a5f; color: #93c5fd; }
 .tema-oscuro .badge-estado.entregado { background: #14432a; color: #86efac; }
 .tema-oscuro .badge-estado.cancelado { background: #450a0a; color: #fca5a5; }
+
+/* =============================================
+S17d: DROPDWN DE USUARIO EN EL header
+Aparece al hacer clic en el nombre del usuario logueado
+==============================================  */
+
+/* Contenedor relativo para posicionar el dropdown */
+.usuario-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+/* Botón que mostrara el nombre del usuario */
+.usuario-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: var(--color-primario);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: inherit;
+  transition: opacity 0.2s;
+}
+.usuario-btn:hover { opacity: .85;}
+
+/* Flecha que indica que hay un menú */
+.usuario-btn::after {
+  content: '▼';
+  font-size: 11px;
+  margin-left: 2px;
+}
+
+/* Menú desplegable - oculto por defecto */
+.usuario-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  min-width: 180px;
+  overflow: hidden;
+  z-index: 100;
+}
+
+/* Mostar el menú cuando tiene la clase .abierto */
+.usuario-menu.abierto { display: block;}
+
+/* Cada opción del menú */
+.usuario-menu a,
+.usuario-menu button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 14px;
+  color: #374151;
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: background 0.15s;
+}
+.usuario-menu a:hover,
+.usuario-menu button:hover {background: #f9fafb;}
+
+/* Separador antes de "Cerrar sesión" */
+.usuario-menu .menu-separador {
+  height: 1px;
+  background: #f3f4f6;
+  margin: 4px 0;
+}
+
+/* "Cerrar sesión " en rojo */
+.usuario-menu  .btn-cerrar-sesion       {color: #dc2626;}
+.usuario-menu  .btn-cerrar-sesion:hover { background: #fee2e2;}
+
+/* --- Modo oscuro --- */
+.tema-oscuro .usuario-menu { background: #1f2937; border-color: #374151; }
+
+.tema-oscuro .pedido-total               { color: #f9fafb; }
+.tema-oscuro .usuario-menu a,
+.tema-oscuro .usuario-menu button        { color: #e5e7eb; }
+.tema-oscuro .usuario-menu a:hover,
+.tema-oscuro .usuario-menu button:hover  { background: #374151; }
+.tema-oscuro .menu-separador             { background: #374151; }
+.tema-oscuro .btn-cerrar-sesion          { color: #f87171; }
+.tema-oscuro .btn-cerrar-sesion:hover     { background: #450a0a; }

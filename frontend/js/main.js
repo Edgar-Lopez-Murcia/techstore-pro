@@ -459,24 +459,55 @@ mostrarPaginaCarrito(); // llamar al cargar
 
 
 function ActualizarNavSesion() {
-  const token = localStorage.getItem('token');
-  const nombre = localStorage.getItem('usuario-nombre');
-  const enlaceLogin = document.querySelector('#nav-login');
+  const token         = localStorage.getItem('token');
+  const nombre        = localStorage.getItem('usuario-nombre');
+  const enlaceLogin   = document.querySelector('#nav-login');
 
   if (!enlaceLogin) return;  // no estamos en una página en nav.login
 
   if (token && nombre) {
-    // Logueaod -mostrar nombre y cerrar sesión alhacer clic
-    enlaceLogin.textContent = '👤' + nombre;
-    enlaceLogin.href = '#';
-    enlaceLogin.title = 'Cerrar sesión';
-    enlaceLogin.addEventListener('click', function(e) {
-      e.preventDefault();
-      if (confirm('¿Cerrar sesión')) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('usuario-nombre');
-        window.location.href = 'login.html'
-      }
+    // 1. Construir wrapper y botón con el nombre
+    const wrapper = document.createElement('div');
+    wrapper.className = 'usuario-dropdown';
+    const btn = document.createElement('button');
+    btn.className = 'usuario-btn';
+    btn.textContent = '👤' + nombre;
+
+    // 2. Construir menú con las tres opciones
+    const menu = document.createElement('div');
+    menu.className = 'usuario-menu';
+    const linkPerfil = document.createElement('a');
+    linkPerfil.href = 'perfil.html'; linkPerfil.textContent = '👤 Mi perfil';
+    const linkPedidos = document.createElement('a');
+    linkPedidos.href = 'mispedidos.html'; linkPedidos.textContent = '📦 Mis pedidos';
+    const sep = document.createElement('div')
+    sep.className = 'menu-separador';
+    const btnCerrar = document.createElement('button');
+    btnCerrar.className = 'btn-cerrar-sesion';
+    btnCerrar.textContent = '🚪 Cerrar sesión';
+    btnCerrar.addEventListener('click', function() {
+      localStorage.removeItem('token'); localStorage.removeItem('usuario-nombre');
+      window.location.href = 'login.html';
+    });
+    menu.appendChild(linkPerfil); menu.appendChild(linkPedidos);
+    menu.appendChild(sep); menu.appendChild(btnCerrar);
+    wrapper.appendChild(btn); wrapper.appendChild(menu);
+
+    // 3. Ocultar "Registro" - no tiene sentido estando logueado
+    const navMenu = document.querySelector('#nav-menu');
+    if (navMenu) navMenu.querySelectorAll('a').forEach(function(a) {
+      if (a.href.includes('registro.html')) a.style.display = 'none';
+    });
+
+    // 4. Reemplazar al < a id="nav-login"> por el dropdown
+    enlaceLogin.parentNode.replaceChild(wrapper, enlaceLogin);
+
+    // 5. Abrir/cerrar al hacer clic; cerrar al clic fuera
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation(); menu.classList.toggle('abierto');
+    });
+    document.addEventListener('click', function(e) {
+      if (!wrapper.contains(e.target)) menu.classList.remove('abierto');
     });
   } else {
     // No logueado - enlace normal

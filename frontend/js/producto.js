@@ -1,4 +1,4 @@
-const ms = require("ms");
+
 
 async function cargarProductoDetalle() {
     // 1. Leer el ?id= de la URLSearchParams
@@ -26,8 +26,8 @@ async function cargarProductoDetalle() {
         // 4b. Imagen: si tiene <img> si no el emoji como placeholder
         const imgWrap = document.getElementById('producto-imagen-wrap');
         imgWrap.innerHTML = producto.imagen
-        ?`<img src="${producto.imagen}" alt="${producto.nombre}">`
-        :`<div class="producto-iamgen-placeholder">${producto.icono || '📦'}</div>`;
+            ? `<img src="${producto.imagen}" alt="${producto.nombre}">`
+            :`<div class="producto-iamgen-placeholder">${producto.icono || '📦'}</div>`;
 
         // 5. Mostrar el contenido
         elCargando.style.display = 'none';
@@ -40,7 +40,7 @@ async function cargarProductoDetalle() {
                 imagen: producto.imagen || '', fecha: new Date().toLocaleDateString('es-CO') });
             const msg = document.getElementById('producto-mensaje');
             msg.innerHTML = `<div style="background: #dcfce7;border: 1px solid #bbf7d0;border-radius: 10px;padding: 12px 16px;">`
-                + `<p style="color: #15803d;font-weight: 600;">✅ Agregado - <a href="carrito.html" style="color: #166534;">Veer carrito -</a></p></div>`
+                + `<p style="color: #15803d;font-weight: 600;">✅ Agregado - <a href="carrito.html" style="color: #166534;">Ver carrito -</a></p></div>`
             msg.style.display = 'block';
         });
     } catch (err) {
