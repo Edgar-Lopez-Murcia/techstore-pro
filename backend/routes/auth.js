@@ -95,7 +95,7 @@ router.post('/login', async (req, res) => {
 });
 
 // 4. GET /api/auth/perfil - Obtener datos del usuario logueado
-const verificarToken = require('../middlewares/auth');
+const verificarToken = require('../middleware/auth');
 
 router.get('/perfil', verificarToken, async (req, res) => {
     try {

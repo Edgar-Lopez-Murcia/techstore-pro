@@ -59,6 +59,7 @@ router.put('/:id',  verificarToken, verificarAdmin, async (req,res) => {
         if (!actualizado) return res.status(404).json({ error: 'Producto no encontrado'});
         res.json(actualizado);
     } catch (err) {
+        console.error("Error al buscar Id", err.message);
         res.status(400).json({ error: err.message});
     }
 });
