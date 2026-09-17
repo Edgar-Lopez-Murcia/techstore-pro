@@ -1498,3 +1498,82 @@ Aparece al hacer clic en el nombre del usuario logueado
 .tema-oscuro .menu-separador             { background: #374151; }
 .tema-oscuro .btn-cerrar-sesion          { color: #f87171; }
 .tema-oscuro .btn-cerrar-sesion:hover     { background: #450a0a; }
+
+/*=========================================
+    S17d: PERFIL DE USUARIO (perfil.html)
+=========================================*/
+
+.perfil-contenedor {
+    max-width: 520px;
+    margin: 60px auto;
+    padding: 40px 32px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    text-align: center;
+}
+
+.perfil-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: var(--color-primario);
+    color: white;
+    font-size: 2rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+}
+
+.perfil-nombre {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 8px;
+}
+
+.perfil-rol {
+    display: inline-block;
+    padding: 4px 12px;
+    background: #ede9fe;
+    color: #6d28d9;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 28px;
+}
+
+.perfil-info {
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 28px;
+}
+
+.perfil-campo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: #f9fafb;
+    border-radius: 10px;
+    gap: 12px;
+}
+
+.perfil-etiqueta { font-size: 0.85rem; color: #6b7280; white-space: nowrap; }
+.perfil-valor    { font-size: 0.95rem; font-weight: 600; color: #111827; text-align: right; }
+.perfil-acciones { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+.perfil-cargando,
+.perfil-error { text-align: center; padding: 80px 24px; color: #6b7280; }
+
+/* — Modo oscuro — */
+.tema-oscuro .perfil-contenedor { background: #1f2937; }
+.tema-oscuro .perfil-nombre     { color: #f9fafb; }
+.tema-oscuro .perfil-rol        { background: #4c1d95; color: #ddd6fe; }
+.tema-oscuro .perfil-campo       { background: #111827; }
+.tema-oscuro .perfil-etiqueta   { color: #9ca3af; }
+.tema-oscuro .perfil-valor      { color: #f9fafb; }
