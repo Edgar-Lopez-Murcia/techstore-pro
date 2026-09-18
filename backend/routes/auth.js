@@ -85,7 +85,8 @@ router.post('/login', async (req, res) => {
         // Responder con el token y nombre del usuario
         res.json({
             token,
-            nombre: usuario.nombre
+            nombre: usuario.nombre,
+            rol: usuario.rol
         });
 
     } catch (err) {

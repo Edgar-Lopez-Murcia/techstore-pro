@@ -2,6 +2,7 @@
 const express  =           require('express');
 const Orden =              require('../models/Orden');
 const verificarToken =     require('../middleware/auth');
+const verificarAdmin =     require('../middleware/admin')
 const producto =           require('../models/Producto'); 
 const router =             express.Router();
 
@@ -51,6 +52,45 @@ router.get('/:id', verificarToken, async (req, res) => {
         res.json(orden);
     } catch (err) {
         res.status(500).json({ error: err.message });
+    }
+});
+
+// GET /api/ordenes/admin/todas - el admin ve TODAS las órdenes de todos los usuarios
+// Declarada antes de "GET /" para no chocar con futuras rutas GET /:id
+router.get('/admin/todas', verificarToken, verificarAdmin, async (req, res) => {
+    try {
+        const ordenes = await Orden
+            .find({})
+            .populate('usuario', 'nombre email')
+            .populate('productos.producto', 'nombre precio')
+            .sort({ createdAt: -1 });
+        res.json(ordenes);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// PATCH /api/ordenes/:id/estado — el admin cambia el estado de una orden
+const ESTADOS_VALIDOS = ['pendiente', 'procesando', 'enviado', 'entregado', 'PAGO_CONFIRMADO'];
+
+router.patch('/:id/estado', verificarToken, verificarAdmin, async (req, res) => {
+    try {
+        const { estado } = req.body;
+
+        if (!ESTADOS_VALIDOS.includes(estado)) {
+            return res.status(400).json({ error: 'Estado inválido' });
+        }
+
+        const orden = await Orden.findByIdAndUpdate(
+            req.params.id,
+            { estado },
+            { new: true }
+        );
+
+        if (!orden) return res.status(404).json({ error: 'Orden no encontrada' });
+        res.json(orden);
+    } catch (err) {
+        res.status(400).json({ error: err.message });
     }
 });
 

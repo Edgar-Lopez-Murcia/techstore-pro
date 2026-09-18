@@ -47,3 +47,5 @@ app.use('/api/ordenes', ordenesRoutes);
 
 // 14.Rutas de pagos
 app.use('/api/pagos',pagoRoutes);
+
+app.use('/api/ordenes/admin/todas',ordenesRoutes)

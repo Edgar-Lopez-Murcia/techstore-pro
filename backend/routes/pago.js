@@ -5,6 +5,24 @@ const Transaccion     = require('../models/Transaccion');
 const verificarToken = require('../middleware/auth');
 const router          = express.Router();
 
+// // Crea la Orden cuando Wompi confirma un pago APPROVED (usada por el polling y por el web
+async function confirmarAprobado(transaccion, wompiTx) {
+    transaccion.status = wompiTx.status;
+    transaccion.wompiTransactionId = wompiTx.id;
+
+    if (wompiTx.status === 'APPROVED' && !transaccion.orden) {
+        const pod = transaccion.pendingOrderData;
+        const orden = await Orden.create({
+            usuario: pod.usuario, productos: pod.productos, total: pod.total,
+            wompiTransactionId: wompiTx.id, wompiReference: wompiTx.reference,
+            estado: 'PAG0_CONFIRMADO'
+        });
+        transaccion.orden = orden._id;
+    }
+
+    await transaccion.save();
+}
+
 // POST /api/pagos/firma - generar firma de integridad para el Widget de Wompi
 // Valida el carrito, genera una referencia única, calcula la firma SHA256
 // y guarda los datos del pedido en Transaccion con estado PENDING.
@@ -45,15 +63,35 @@ router.post('/firma', verificarToken, async (req, res) => {
     }
 });
 
-// GET /api/pagos/estado/:reference
-// El frontend hace polling a esta ruta cada 3 segundos para saber si el
-// pago fue aprobado. No necesita webhook ni ngrok en desarrollo.
+// // GET /api/pagos/estado/:reference - polling
 router.get('/estado/:reference', verificarToken, async (req, res) => {
     try {
         const tx = await Transaccion.findOne({ wompiReference: req.params.reference });
-        if (!tx) return res.status(404).json({ error: 'Transaccion no encontrada' });
+        if (!tx) return res.status(404).json({ error: 'Transacción no encontrada' });
+
+        if (tx.status === 'PENDING') {
+            // // Sin webhook (no hay ngrok), preguntamos directamente a Wompi por esta referencia.
+            // // ⚠️ Requiere la llave PRIVADA (WOMPI_PRIVATE_KEY), no la pública.
+            const wompiRes = await fetch(
+                `https://sandbox.wompi.co/v1/transactions?reference=${tx.wompiReference}`,
+                { headers: { Authorization: `Bearer ${process.env.WOMPI_PRIVATE_KEY}` } }
+            );
+
+            if (!wompiRes.ok) {
+                console.error('Error consultando Wompi:', wompiRes.status, await wompiRes.text());
+            } else {
+                const wompiJson = await wompiRes.json();
+                const wompiTx = wompiJson.data?.[0];
+
+                if (wompiTx && wompiTx.status !== 'PENDING') {
+                    await confirmarAprobado(tx, wompiTx);
+                }
+            }
+        }
+
         res.json({ status: tx.status, ordenId: tx.orden ?? null });
     } catch (err) {
+        console.error(err);
         res.status(500).json({ error: 'Error interno' });
     }
 });
@@ -83,21 +121,9 @@ router.post('/webhook', async (req, res) => {
     const transaccion = await Transaccion.findOne({ wompiReference: tx.reference });
     if (!transaccion) return res.status(404).json({ error: 'Transacción no encontrada' });
 
-    transaccion.status = tx.status;
-    transaccion.wompiTransactionId = tx.id;
-
-    if (tx.status === 'APPROVED' && !transaccion.orden) {
-        const pod = transaccion.pendingOrderData;
-        const orden = await Orden.create({
-            usuario: pod.usuario, productos: pod.productos, total: pod.total,
-            wompiTransactionId: tx.id, wompiReference: tx.reference,
-            estado: 'PAGO_CONFIRMADO'
-        });
-        transaccion.orden = orden._id;
-    }
-
-    await transaccion.save();
+    await confirmarAprobado(transaccion, tx);
     res.json({ ok: true });
 });
 
 module.exports = router;
+
