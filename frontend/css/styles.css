@@ -1577,3 +1577,49 @@ Aparece al hacer clic en el nombre del usuario logueado
 .tema-oscuro .perfil-campo       { background: #111827; }
 .tema-oscuro .perfil-etiqueta   { color: #9ca3af; }
 .tema-oscuro .perfil-valor      { color: #f9fafb; }
+
+
+/* junto a las demás .badge-estado.* */
+.badge-estado.procesando { background: #ede9fe; color: #5b21b6; }
+
+/* Selector de estado editable — usado en admin.html */
+.selector-estado {
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #374151;
+  cursor: pointer;
+}
+
+/* modo oscuro */
+.tema-oscuro .badge-estado.procesando { background: #2e1065; color: #c4b5fd; }
+.tema-oscuro .selector-estado         { background: #1f2937; border-color: #374151; color: #e5e7eb; }
+
+/* Línea de tiempo del pedido — usada en mispedidos.js y admin.js (js/timeline.js) */
+.timeline-pedido { display: flex; align-items: center; margin: 16px 0; padding-top: 12px; border-top: 1px solid #f3f4f6; }
+.timeline-paso   { display: flex; flex-direction: column; align-items: center; gap: 6px; flex-shrink: 0; }
+.timeline-punto  { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+                    font-size: 0.9rem; background: #f3f4f6; border: 2px solid #e5e7eb; filter: grayscale(1); opacity: 0.5; }
+.timeline-texto  { font-size: 0.7rem; color: #9ca3af; font-weight: 600; text-align: center; white-space: nowrap; }
+.timeline-linea  { flex: 1; height: 2px; background: #e5e7eb; margin: 0 4px; margin-bottom: 22px; }
+
+.timeline-paso.completado .timeline-punto,
+.timeline-paso.activo .timeline-punto     { filter: none; opacity: 1; background: #dcfce7; border-color: #166534; }
+.timeline-paso.completado .timeline-texto,
+.timeline-paso.activo .timeline-texto     { color: #166534; }
+.timeline-paso.activo .timeline-punto     { background: #39a900; border-color: #2d8400; box-shadow: 0 0 0 4px rgba(57,169,0,0.15); }
+.timeline-paso.activo .timeline-texto     { color: #2d8400; font-weight: 800; }
+
+/* modo oscuro */
+.tema-oscuro .timeline-pedido { border-color: #374151; }
+.tema-oscuro .timeline-punto  { background: #374151; border-color: #4b5563; }
+.tema-oscuro .timeline-texto  { color: #6b7280; }
+.tema-oscuro .timeline-linea  { background: #374151; }
+.tema-oscuro .timeline-paso.completado .timeline-punto,
+.tema-oscuro .timeline-paso.activo .timeline-punto { background: #14432a; border-color: #22c55e; }
+.tema-oscuro .timeline-paso.completado .timeline-texto,
+.tema-oscuro .timeline-paso.activo .timeline-texto { color: #86efac; }
+.tema-oscuro .timeline-paso.activo .timeline-punto { background: #39a900; border-color: #86efac; }

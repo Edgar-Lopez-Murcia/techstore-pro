@@ -461,6 +461,7 @@ mostrarPaginaCarrito(); // llamar al cargar
 function ActualizarNavSesion() {
   const token         = localStorage.getItem('token');
   const nombre        = localStorage.getItem('usuario-nombre');
+  const rol    = localStorage.getItem('usuario-rol'); 
   const enlaceLogin   = document.querySelector('#nav-login');
 
   if (!enlaceLogin) return;  // no estamos en una página en nav.login
@@ -479,17 +480,27 @@ function ActualizarNavSesion() {
     const linkPerfil = document.createElement('a');
     linkPerfil.href = 'perfil.html'; linkPerfil.textContent = '👤 Mi perfil';
     const linkPedidos = document.createElement('a');
-    linkPedidos.href = 'mispedidos.html'; linkPedidos.textContent = '📦 Mis pedidos';
+    linkPedidos.href = 'mispedidos.html'; 
+    linkPedidos.textContent = '📦 Mis pedidos';
     const sep = document.createElement('div')
     sep.className = 'menu-separador';
+    // Opción: Panel Admin — solo visible si el usuario tiene rol 'admin'
+    const linkAdmin = document.createElement('a');
+    linkAdmin.href        = 'admin.html';
+    linkAdmin.textContent = '🛠️ Panel Admin';
     const btnCerrar = document.createElement('button');
     btnCerrar.className = 'btn-cerrar-sesion';
     btnCerrar.textContent = '🚪 Cerrar sesión';
     btnCerrar.addEventListener('click', function() {
-      localStorage.removeItem('token'); localStorage.removeItem('usuario-nombre');
+      localStorage.removeItem('token');
+      localStorage.removeItem('usuario-nombre');
+      localStorage.removeItem('usuario-rol');  
       window.location.href = 'login.html';
     });
     menu.appendChild(linkPerfil); menu.appendChild(linkPedidos);
+    menu.appendChild(linkPedidos);
+    if (rol === 'admin') menu.appendChild(linkAdmin); 
+    menu.appendChild(separador);
     menu.appendChild(sep); menu.appendChild(btnCerrar);
     wrapper.appendChild(btn); wrapper.appendChild(menu);
 
