@@ -456,78 +456,103 @@ mostrarPaginaCarrito(); // llamar al cargar
 
 // ===== S17c: ESTADO DE SESIÓN EN EL NAV =====
 // Lee el token del localStorage y actualiza el nav en TODAS las páginas
-
-
 function ActualizarNavSesion() {
-  const token         = localStorage.getItem('token');
-  const nombre        = localStorage.getItem('usuario-nombre');
-  const rol    = localStorage.getItem('usuario-rol'); 
-  const enlaceLogin   = document.querySelector('#nav-login');
-
-  if (!enlaceLogin) return;  // no estamos en una página en nav.login
-
-  if (token && nombre) {
-    // 1. Construir wrapper y botón con el nombre
-    const wrapper = document.createElement('div');
-    wrapper.className = 'usuario-dropdown';
-    const btn = document.createElement('button');
-    btn.className = 'usuario-btn';
-    btn.textContent = '👤' + nombre;
-
-    // 2. Construir menú con las tres opciones
-    const menu = document.createElement('div');
-    menu.className = 'usuario-menu';
-    const linkPerfil = document.createElement('a');
-    linkPerfil.href = 'perfil.html'; linkPerfil.textContent = '👤 Mi perfil';
-    const linkPedidos = document.createElement('a');
-    linkPedidos.href = 'mispedidos.html'; 
-    linkPedidos.textContent = '📦 Mis pedidos';
-    const sep = document.createElement('div')
-    sep.className = 'menu-separador';
-    // Opción: Panel Admin — solo visible si el usuario tiene rol 'admin'
-    const linkAdmin = document.createElement('a');
-    linkAdmin.href        = 'admin.html';
-    linkAdmin.textContent = '🛠️ Panel Admin';
-    const btnCerrar = document.createElement('button');
-    btnCerrar.className = 'btn-cerrar-sesion';
-    btnCerrar.textContent = '🚪 Cerrar sesión';
-    btnCerrar.addEventListener('click', function() {
-      localStorage.removeItem('token');
-      localStorage.removeItem('usuario-nombre');
-      localStorage.removeItem('usuario-rol');  
-      window.location.href = 'login.html';
-    });
-    menu.appendChild(linkPerfil); menu.appendChild(linkPedidos);
-    menu.appendChild(linkPedidos);
-    if (rol === 'admin') menu.appendChild(linkAdmin); 
-    menu.appendChild(separador);
-    menu.appendChild(sep); menu.appendChild(btnCerrar);
-    wrapper.appendChild(btn); wrapper.appendChild(menu);
-
-    // 3. Ocultar "Registro" - no tiene sentido estando logueado
-    const navMenu = document.querySelector('#nav-menu');
-    if (navMenu) navMenu.querySelectorAll('a').forEach(function(a) {
-      if (a.href.includes('registro.html')) a.style.display = 'none';
-    });
-
-    // 4. Reemplazar al < a id="nav-login"> por el dropdown
-    enlaceLogin.parentNode.replaceChild(wrapper, enlaceLogin);
-
-    // 5. Abrir/cerrar al hacer clic; cerrar al clic fuera
-    btn.addEventListener('click', function(e) {
-      e.stopPropagation(); menu.classList.toggle('abierto');
-    });
-    document.addEventListener('click', function(e) {
-      if (!wrapper.contains(e.target)) menu.classList.remove('abierto');
-    });
-  } else {
-    // No logueado - enlace normal
-    enlaceLogin.textContent = 'login';
-    enlaceLogin.href = 'login.html'
-  }
+    const token = localStorage.getItem('token');
+    const nombre = localStorage.getItem('usuario-nombre');
+    const rol = localStorage.getItem('usuario-rol');
+    
+    const enlaceLogin = document.querySelector('#nav-login');
+    if (!enlaceLogin) return; // no estamos en una página que requiera nav login
+    
+    if (token && nombre) {
+        // 1. Construir wrapper y botón con el nombre
+        const wrapper = document.createElement('div');
+        wrapper.className = 'usuario-dropdown';
+        
+        const btn = document.createElement('button');
+        btn.className = 'usuario-btn';
+        btn.textContent = '👤 ' + nombre;
+        
+        // 2. Construir menú con las opciones
+        const menu = document.createElement('div');
+        menu.className = 'usuario-menu';
+        
+        const linkPerfil = document.createElement('a');
+        linkPerfil.href = 'perfil.html'; 
+        linkPerfil.textContent = '👤 Mi perfil';
+        
+        const linkPedidos = document.createElement('a');
+        linkPedidos.href = 'mispedidos.html';
+        linkPedidos.textContent = '📦 Mis pedidos';
+        
+        const sep = document.createElement('div');
+        sep.className = 'menu-separador';
+        
+        // Opción: Panel Admin — solo visible si el usuario tiene rol 'admin'
+        const linkAdmin = document.createElement('a');
+        linkAdmin.href = 'admin.html';
+        linkAdmin.textContent = '🛠️ Panel Admin';
+        
+        const btnCerrar = document.createElement('button');
+        btnCerrar.className = 'btn-cerrar-sesion';
+        btnCerrar.textContent = '🚪 Cerrar sesión';
+        
+        btnCerrar.addEventListener('click', function() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('usuario-nombre');
+            localStorage.removeItem('usuario-rol'); 
+            window.location.href = 'login.html';
+        });
+        
+        // Ensamblado del menú sin duplicados y corrigiendo la variable 'separador' errónea
+        menu.appendChild(linkPerfil); 
+        menu.appendChild(linkPedidos);
+        
+        if (rol === 'admin') {
+            menu.appendChild(linkAdmin);
+        }
+        
+        menu.appendChild(sep); 
+        menu.appendChild(btnCerrar);
+        
+        wrapper.appendChild(btn); 
+        wrapper.appendChild(menu);
+        
+        // 3. Ocultar "Registro" - no tiene sentido estando logueado
+        const navMenu = document.querySelector('#nav-menu');
+        if (navMenu) {
+            navMenu.querySelectorAll('a').forEach(function(a) {
+                if (a.href.includes('registro.html')) {
+                    a.style.display = 'none';
+                }
+            });
+        }
+        
+        // 4. Reemplazar el <a id="nav-login"> por el dropdown dinámico
+        enlaceLogin.parentNode.replaceChild(wrapper, enlaceLogin);
+        
+        // 5. Abrir/cerrar al hacer clic; cerrar al clic fuera
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation(); 
+            menu.classList.toggle('abierto');
+        });
+        
+        document.addEventListener('click', function(e) {
+            if (!wrapper.contains(e.target)) {
+                menu.classList.remove('abierto');
+            }
+        });
+        
+    } else {
+        // No logueado - enlace normal visible
+        enlaceLogin.textContent = 'Login';
+        enlaceLogin.href = 'login.html';
+    }
 }
 
-ActualizarNavSesion();  // ejecuta al cargar caga página
+// Ejecutar la comprobación inmediatamente al cargar la página
+ActualizarNavSesion();
+
 
 // ===== S17c: CHECKOUT - CONFIRMAR PEIDO ====
 const btnConfirmar = document.getElementById('btn-confirmar');
