@@ -1,129 +1,102 @@
-const express         = require('express');
-const crypto          = require('crypto'); // nativo de Node
-const Orden           = require('../models/Orden');
-const Transaccion     = require('../models/Transaccion');
+const express = require('express');
+const crypto = require('crypto');
+const Orden = require('../models/Orden');
+const DetalleOrden = require('../models/DetalleOrden');
+const Transaccion = require('../models/Transaccion');
 const verificarToken = require('../middleware/auth');
-const router          = express.Router();
+const router = express.Router();
 
-// // Crea la Orden cuando Wompi confirma un pago APPROVED (usada por el polling y por el web
+// Función auxiliar: Crea la orden relacional cuando Wompi confirma APPROVED
 async function confirmarAprobado(transaccion, wompiTx) {
     transaccion.status = wompiTx.status;
     transaccion.wompiTransactionId = wompiTx.id;
 
-    if (wompiTx.status === 'APPROVED' && !transaccion.orden) {
-        const pod = transaccion.pendingOrderData;
+    if (wompiTx.status === 'APPROVED' && !transaccion.orden_id) {
+        // Parseamos el texto JSON guardado temporalmente para recuperar el objeto real
+        const pod = JSON.parse(transaccion.pendingOrderData);
+        
+        // 1. Crear la Orden General
         const orden = await Orden.create({
-            usuario: pod.usuario, productos: pod.productos, total: pod.total,
-            wompiTransactionId: wompiTx.id, wompiReference: wompiTx.reference,
-            estado: 'PAG0_CONFIRMADO'
+            usuario_id: pod.usuario,
+            total: pod.total,
+            wompiTransactionId: wompiTx.id,
+            wompiReference: wompiTx.reference,
+            estado: 'PAGO_CONFIRMADO'
         });
-        transaccion.orden = orden._id;
-    }
 
+        // 2. Desglosar el carrito en la tabla intermedia detalle_orden
+        if (pod.productos && pod.productos.length > 0) {
+            const detalles = pod.productos.map(item => ({
+                orden_id: orden.id,
+                producto_id: item.producto,
+                cantidad: item.cantidad || 1
+            }));
+            await DetalleOrden.bulkCreate(detalles);
+        }
+
+        transaccion.orden_id = orden.id;
+    }
     await transaccion.save();
 }
 
-// POST /api/pagos/firma - generar firma de integridad para el Widget de Wompi
-// Valida el carrito, genera una referencia única, calcula la firma SHA256
-// y guarda los datos del pedido en Transaccion con estado PENDING.
+// POST /api/pagos/firma - Generar firmas de integridad para el Widget de Wompi
 router.post('/firma', verificarToken, async (req, res) => {
     const { productos, total } = req.body;
-
     if (!productos?.length || !total) {
         return res.status(400).json({ error: 'Carrito vacío o total inválido' });
     }
-
     try {
-        // 1. Referencia única para esta transacción
         const reference = `TS-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
         const amountInCents = Math.round(total * 100);
         const currency = 'COP';
 
-        // 2. Calcular firma de integridad - fórmula oficial Wompi
         const raw = `${reference}${amountInCents}${currency}${process.env.WOMPI_INTEGRITY_SECRET}`;
         const signature = crypto.createHash('sha256').update(raw).digest('hex');
 
-        // 3. Guardar datos del carrito en la Transaccion con estado PENDING
-        // ⚠️ req.usuario.id (no ._id) - así lo expone el middleware real de este proyecto
+        // Convertimos el objeto dinámico del carrito a un String JSON para la columna TEXT
+        const pendingDataText = JSON.stringify({ usuario: req.usuario.id, productos, total });
+
         await Transaccion.create({
-            wompiReference: reference, amountInCents, currency,
+            wompiReference: reference,
+            amountInCents,
+            currency,
             status: 'PENDING',
-            pendingOrderData: { usuario: req.usuario.id, productos, total }
+            pendingOrderData: pendingDataText
         });
 
-        // 4. Devolver datos al Widget de Wompi en el frontend
         res.json({
             reference, amountInCents, currency, signature,
             publicKey: process.env.WOMPI_PUBLIC_KEY
         });
-
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'Error al generar la firma' });
+        res.status(500).json({ error: 'Error al generar la firma en MySQL' });
     }
 });
 
-// // GET /api/pagos/estado/:reference - polling
+// GET /api/pagos/estado/:reference - Polling de verificación de pagos
 router.get('/estado/:reference', verificarToken, async (req, res) => {
     try {
-        const tx = await Transaccion.findOne({ wompiReference: req.params.reference });
+        const tx = await Transaccion.findOne({ where: { wompiReference: req.params.reference } });
         if (!tx) return res.status(404).json({ error: 'Transacción no encontrada' });
 
         if (tx.status === 'PENDING') {
-            // // Sin webhook (no hay ngrok), preguntamos directamente a Wompi por esta referencia.
-            // // ⚠️ Requiere la llave PRIVADA (WOMPI_PRIVATE_KEY), no la pública.
             const wompiRes = await fetch(
-                `https://sandbox.wompi.co/v1/transactions?reference=${tx.wompiReference}`,
+                `https://wompi.co{tx.wompiReference}`,
                 { headers: { Authorization: `Bearer ${process.env.WOMPI_PRIVATE_KEY}` } }
             );
-
-            if (!wompiRes.ok) {
-                console.error('Error consultando Wompi:', wompiRes.status, await wompiRes.text());
-            } else {
+            if (wompiRes.ok) {
                 const wompiJson = await wompiRes.json();
                 const wompiTx = wompiJson.data?.[0];
-
                 if (wompiTx && wompiTx.status !== 'PENDING') {
                     await confirmarAprobado(tx, wompiTx);
                 }
             }
         }
-
-        res.json({ status: tx.status, ordenId: tx.orden ?? null });
+        res.json({ status: tx.status, ordenId: tx.orden_id ?? null });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Error interno' });
+        res.status(500).json({ error: 'Error interno de polling' });
     }
 });
 
-// POST /webhook/wompi
-// Wompi llama a esta ruta en producción (cuando hay servidor público).
-// En desarrollo local el polling del frontend cubre esta función.
-router.post('/webhook', async (req, res) => {
-    const { signature, timestamp, data } = req.body;
-    const secret = process.env.WOMPI_EVENTS_SECRET;
-    if (!secret) return res.status(200).json({ ok: true }); // sin secreto -> modo dev, ignorar
-
-    // Verificar firma del webhook (fórmula oficial Wompi)
-    const tx = data?.transaction;
-    if (!tx) return res.status(400).json({ error: 'Payload inválido' });
-
-    const props = (signature?.properties || []).map((prop) => {
-        const path = prop.split('.').slice(1);
-        let v = tx; for (const k of path) v = v?.[k]; return v;
-    }).join('');
-
-    const computed = crypto.createHash('sha256')
-        .update(`${props}${timestamp}${secret}`).digest('hex');
-
-    if (computed !== signature?.checksum) return res.status(400).json({ error: 'Firma inválida' });
-
-    const transaccion = await Transaccion.findOne({ wompiReference: tx.reference });
-    if (!transaccion) return res.status(404).json({ error: 'Transacción no encontrada' });
-
-    await confirmarAprobado(transaccion, tx);
-    res.json({ ok: true });
-});
-
 module.exports = router;
-

@@ -146,28 +146,40 @@ if (formulario) {  // solo corre en contacto.html donde existe el formulario
 // PASO 2 — Función que convierte UN objeto producto en HTML de tarjeta
 // Usa backtick ` (no comillas) para escribir HTML con variables ${...}
 // Las clases .tarjeta .tarjeta-img etc. ya están definidas en styles.css
+// ===== EJERCICIO 3: TARJETAS DINÁMICAS DESDE ARRAY CORREGIDO SIN PARPADEO =====
 function crearTarjeta(producto) {
-  return `
+    // Si el producto no tiene imagen, o tiene la ruta vieja, asegúrate de poner una ruta válida
+    // Nota: Revisa si en tu carpeta de imágenes el archivo se llama 'iphone15.jpg' o 'producto-1.jpg'
+    const rutaImagen = producto.imagen ? producto.imagen : 'assets/img/producto-1.jpg';
+    const iconoProducto = producto.icono ? producto.icono : '📦';
+
+    return `
     <article class="tarjeta"
-      data-id="${producto.id}"
-      data-icono="${producto.icono || '📦'}"
-      data-nombre="${producto.nombre}"
-      data-desc="${producto.descripcion}"
-      data-precio="${producto.precio}"
-      data-imagen="${producto.imagen  || ''}">
-      <span class="badge-disponible">✓ Disponible</span>
-      <img src="${producto.imagen}" alt="${producto.nombre}" class="tarjeta-img">
-      <div class="tarjeta-info">
-        <h3 class="tarjeta-nombre">${producto.nombre}</h3>
-        <p class="tarjeta-desc">${producto.descripcion}</p>
-        <div class="tarjeta-pie">
-          <span class="tarjeta-precio">${producto.precio}</span>
-          <a href="producto.html?id=${producto._id || producto.id || ''}" class="btn-accion">Ver más</a>
+        data-id="${producto.id}"
+        data-icono="${iconoProducto}"
+        data-nombre="${producto.nombre}"
+        data-desc="${producto.descripcion}"
+        data-precio="${producto.precio}"
+        data-imagen="${rutaImagen}">
+        
+        <span class="badge-disponible">✓ Disponible</span>
+        
+        <!-- Eliminamos el onerror en línea para evitar el parpadeo infinito si la copia no existe -->
+        <img src="${rutaImagen}" alt="${producto.nombre}" class="tarjeta-img">
+        
+        <div class="tarjeta-info">
+            <h3 class="tarjeta-nombre">${iconoProducto} ${producto.nombre}</h3>
+            <p class="tarjeta-desc">${producto.descripcion}</p>
+            <div class="tarjeta-pie">
+                <span class="tarjeta-precio">${producto.precio}</span>
+                <a href="producto.html?id=${producto.id}" class="btn-accion">Ver más</a>
+            </div>
         </div>
-      </div>
     </article>
-  `;
+    `;
 }
+
+
 
 // ================================================
 // S08: CARGAR PRODUCTOS DESDE JSON

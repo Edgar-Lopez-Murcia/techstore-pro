@@ -1,78 +1,75 @@
+const express = require('express');
+const Producto = require('../models/Producto');
+const verificarToken = require('../middleware/auth');
+const verificarAdmin = require('../middleware/admin');
+const router = express.Router();
 
-// 1. Importar Las dependencias
-
-const express  =           require('express');
-const Producto =           require('../models/Producto');
-const verificarToken =     require('../middleware/auth');
-const verificarAdmin =     require('../middleware/admin');
-const router =             express.Router();
-
-
-// 2. GET / -público, sin token
+// 2. GET /api/productos - Obtener todos los artículos (Público, sin token)
 router.get('/', async (req, res) => {
     try {
-        const productos = await Producto.find();
+        // En Sequelize, findAll() equivale al .find() de Mongoose
+        const productos = await Producto.findAll();
         res.json(productos);
     } catch (err) {
-        res.status(500).json({erros: 'Error al obtener productos'});
+        res.status(500).json({ error: 'Error al obtener productos de MySQL' });
     }
 });
 
-// 2b. GET /:id -un solo producto por su _id (público, no requiere token)
-// Ejemplo de URL: GET https://localhost:300/api/producto/64a1b2c3d4e5f6a7b8c8d0e1
-router.get('/:id', async (req,res) =>{
+// 2b. GET /api/productos/:id - Obtener un solo producto por su ID (Público)
+router.get('/:id', async (req, res) => {
     try {
-        // req.params.id lee el valor que llega en La URL después de 7API7productos/
-        const producto = await Producto.findById(req.params.id);
-
-        // Si MongoDB no encontró nada con ese _id, productos es null 404
-        if (!producto) return res.status(404).json({ error: 'Producto no encontrado'});
-
-        res.json(producto); // 2002 OK - devuelve el objeto producto
-
+        // findByPk busca directamente por la Llave Primaria (Primary Key) numérica
+        const producto = await Producto.findByPk(req.params.id);
+        
+        if (!producto) {
+            return res.status(404).json({ error: 'Producto no encontrado' });
+        }
+        res.json(producto);
     } catch (err) {
-        // EL cath atrapa el Cast Error de Mongoose cuando el _id tiene formato inválido
-        // (cualquier texto que no sea un ObjetId de 24 caracteres hexadecimales)
-        res.status(404).json({ error: 'Producto no encontrado'});
+        res.status(404).json({ error: 'Producto no encontrado o ID inválido' });
     }
-} );
+});
 
-
-// 3. POST / solo admin (verificarToken + verificarAdmin)
-router.post('/',  verificarToken, verificarAdmin, async (req,res) => {
+// 3. POST /api/productos - Solo Administradores (Crear nuevo producto)
+router.post('/', verificarToken, verificarAdmin, async (req, res) => {
     try {
         const nuevo = await Producto.create(req.body);
         res.status(201).json(nuevo);
     } catch (err) {
-        res.status(400).json({ error: err.message});
+        res.status(400).json({ error: err.message });
     }
 });
 
-// 4. PUT /:id -solo admin
-router.put('/:id',  verificarToken, verificarAdmin, async (req,res) => {
-    try{
-        const actualizado = await Producto.findByIdAndUpdate(
-            req.params.id,
-            req.body,
-            { new: true}
-        );
-        if (!actualizado) return res.status(404).json({ error: 'Producto no encontrado'});
-        res.json(actualizado);
+// 4. PUT /api/productos/:id - Solo Administradores (Editar producto)
+router.put('/:id', verificarToken, verificarAdmin, async (req, res) => {
+    try {
+        const producto = await Producto.findByPk(req.params.id);
+        if (!producto) {
+            return res.status(404).json({ error: 'Producto no encontrado' });
+        }
+
+        // Actualiza los campos en MySQL con los datos recibidos
+        await producto.update(req.body);
+        res.json(producto);
     } catch (err) {
-        res.status(400).json({ error: err.message});
+        res.status(400).json({ error: err.message });
     }
 });
 
-// 5. DELETE /:id -solo admin
-router.delete('/:id',  verificarToken,verificarAdmin, async (req,res) => {
-    try{
-        const eliminado = await Producto.findByIdAndDelete(req.params.id,);
-        if (!eliminado) return res.status(404).json({ error: 'Producto no encontrado'});
-        res.json({ mensaje: 'producto eliminado correctamente', eliminado});
+// 5. DELETE /api/productos/:id - Solo Administradores (Eliminar producto)
+router.delete('/:id', verificarToken, verificarAdmin, async (req, res) => {
+    try {
+        const producto = await Producto.findByPk(req.params.id);
+        if (!producto) {
+            return res.status(404).json({ error: 'Producto no encontrado' });
+        }
+
+        // Elimina el registro físico de la tabla productos
+        await producto.destroy();
+        res.json({ mensaje: 'Producto eliminado correctamente de MySQL' });
     } catch (err) {
-        res.status(400).json({ error: err.message});
+        res.status(400).json({ error: err.message });
     }
 });
 
-// 6. Exportar
 module.exports = router;

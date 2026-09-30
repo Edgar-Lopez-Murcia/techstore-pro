@@ -1,37 +1,44 @@
-const mongoose = require('mongoose');
-const { Schema } = mongoose;
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../config/db');
+const Usuario = require('./Usuario'); // Importamos usuarios para crear la relación
 
-const ordenSchema = new Schema({
-    usuario: {
-        type: Schema.Types.ObjectId,
-        ref: 'Usuario',
-        required: true
+const Orden = sequelize.define('Orden', {
+    id: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true
     },
-    productos: [{
-        producto: {
-            type: Schema.Types.ObjectId,
-            ref: 'producto'
-        },
-        cantidad: { type: Number, required: true, min: 1}
-    }],
-
-    // Total calculado en el frontend (o en una ruta)
-    total: { type: Number, required: true},
-
-    // Estado del ciclo de vide de la orden
+    usuario_id: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: Usuario, // Crea el vínculo lógico directo con la tabla usuarios
+            key: 'id'
+        }
+    },
+    total: {
+        type: DataTypes.DECIMAL(12, 2), // Guarda el valor monetario de forma precisa (ej: 4299000.00)
+        allowNull: false
+    },
     estado: {
-        type: String,
-        default: 'pendiente',
-        enum: ['pendiente', 'procesando', 'enviado', 'entregado', 'PAG0_CONFIRMADO']
+        type: DataTypes.ENUM('pendiente', 'procesando', 'enviado', 'entregado', 'PAGO_CONFIRMADO'),
+        defaultValue: 'pendiente'
     },
+    wompiTransactionId: {
+        type: DataTypes.STRING(100),
+        allowNull: true
+    },
+    wompiReference: {
+        type: DataTypes.STRING(100),
+        allowNull: true
+    }
+}, {
+    tableName: 'ordenes',
+    timestamps: true // Habilita automáticamente createdAt y updatedAt
+});
 
-    // Datos de wompi - se llenan solo cuando el pago fue aprobado
-    wompiTrasactionId: {type: String},
-    wompiReference : { type: String}
+// DEFINICIÓN DE RELACIONES (Asociaciones de Sequelize)
+// Una orden pertenece obligatoriamente a un único usuario (Relación 1 a Muchos)
+Orden.belongsTo(Usuario, { foreignKey: 'usuario_id', as: 'cliente' });
 
-
-}, { timestamps: true}); // agrega createdAt y updedAt
-
-const Orden = mongoose.model('Orden', ordenSchema);
-
-module.exports= Orden;
+module.exports = Orden;

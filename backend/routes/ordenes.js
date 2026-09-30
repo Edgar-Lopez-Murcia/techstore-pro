@@ -1,95 +1,88 @@
+const express = require('express');
+const Orden = require('../models/Orden');
+const DetalleOrden = require('../models/DetalleOrden');
+const Producto = require('../models/Producto');
+const Usuario = require('../models/Usuario');
+const verificarToken = require('../middleware/auth');
+const verificarAdmin = require('../middleware/admin');
+const router = express.Router();
 
-const express  =           require('express');
-const Orden =              require('../models/Orden');
-const verificarToken =     require('../middleware/auth');
-const verificarAdmin =     require('../middleware/admin')
-const producto =           require('../models/Producto'); 
-const router =             express.Router();
-
-// POST /api/ordenes -crear una orden
-// El usuario loguead crea su propia orden
-
+// 1. POST /api/ordenes - Crear una nueva orden
 router.post('/', verificarToken, async (req, res) => {
-    try{
-        const {productos, total } = req.body;
-        const nuevaOrden = await Orden.create({
-            usuario: req.usuario.id,
-            productos,
-            total
-        });
-        res.status(201).json(nuevaOrden);
-    } catch (err) {
-        res.status(400).json({ error: err.message  });
-    }
-});
-
-// GET /pai/ordenes - mis órdenes
-// Cada usuairo ve solo sus propias órdenes 
-
-router.get('/', verificarToken, async (req, res) => {
-    try{
-        const ordenes = await Orden
-            .find({ usuario: req.usuario.id })
-            .populate('usuario', 'nombre email')
-            .populate('productos.producto', 'nombre precio');
-        res.json(ordenes);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-// GET /api/ordenes/:id - Obtener una orden específica por su ID
-router.get('/:id', verificarToken, async (req, res) => {
     try {
-        const orden = await Orden.findById(req.params.id)
-            .populate('usuario', 'nombre email')
-            .populate('productos.producto', 'nombre precio');
+        const { productos, total } = req.body;
 
-        if (!orden) {
-            return res.status(404).json({ error: 'Orden no encontrada' });
+        // Paso A: Crear el registro global en la tabla 'ordenes'
+        const nuevaOrden = await Orden.create({
+            usuario_id: req.usuario.id,
+            total: total
+        });
+
+        // Paso B: Insertar cada producto del carrito en la tabla intermedia 'detalle_orden'
+        if (productos && productos.length > 0) {
+            const detalles = productos.map(item => ({
+                orden_id: nuevaOrden.id,
+                producto_id: item.producto, // ID numérico de tu producto en MySQL
+                cantidad: item.cantidad || 1
+            }));
+            await DetalleOrden.bulkCreate(detalles); // Inserta todas las filas en un solo paso
         }
 
-        res.json(orden);
+        res.status(201).json(nuevaOrden);
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        res.status(400).json({ error: err.message });
     }
 });
 
-// GET /api/ordenes/admin/todas - el admin ve TODAS las órdenes de todos los usuarios
-// Declarada antes de "GET /" para no chocar con futuras rutas GET /:id
-// GET /api/ordenes/admin/todas — el admin ve TODAS las órdenes de todos los usuarios
-// Declarada antes de "GET /" para no chocar con futuras rutas GET /:id
-router.get('/admin/todas', verificarToken, verificarAdmin, async (req, res) => {
+// 2. GET /api/ordenes - Ver mis órdenes (Cada usuario ve solo lo suyo)
+router.get('/', verificarToken, async (req, res) => {
     try {
-        const ordenes = await Orden
-            .find({})
-            .populate('usuario', 'nombre email')
-            .populate('productos.producto', 'nombre precio')
-            .sort({ createdAt: -1 });
+        const ordenes = await Orden.findAll({
+            where: { usuario_id: req.usuario.id },
+            include: [
+                { model: Usuario, as: 'cliente', attributes: ['nombre', 'email'] },
+                { 
+                    model: DetalleOrden, 
+                    as: 'detalles',
+                    include: [{ model: Producto, as: 'articulo', attributes: ['nombre', 'precio'] }]
+                }
+            ]
+        });
         res.json(ordenes);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-// PATCH /api/ordenes/:id/estado — el admin cambia el estado de una orden
-const ESTADOS_VALIDOS = ['PAGO_CONFIRMADO', 'procesando', 'enviado', 'entregado', 'pendiente'];
+// 3. GET /api/ordenes/admin/todas - El administrador ve todas las órdenes
+router.get('/admin/todas', verificarToken, verificarAdmin, async (req, res) => {
+    try {
+        const ordenes = await Orden.findAll({
+            order: [['createdAt', 'DESC']],
+            include: [
+                { model: Usuario, as: 'cliente', attributes: ['nombre', 'email'] },
+                { 
+                    model: DetalleOrden, 
+                    as: 'detalles',
+                    include: [{ model: Producto, as: 'articulo', attributes: ['nombre', 'precio'] }]
+                }
+            ]
+        });
+        res.json(ordenes);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
 
+// 4. PATCH /api/ordenes/:id/estado - Cambiar estado (Solo Admin)
 router.patch('/:id/estado', verificarToken, verificarAdmin, async (req, res) => {
     try {
         const { estado } = req.body;
-
-        if (!ESTADOS_VALIDOS.includes(estado)) {
-            return res.status(400).json({ error: 'Estado inválido' });
-        }
-
-        const orden = await Orden.findByIdAndUpdate(
-            req.params.id,
-            { estado },
-            { new: true }
-        );
-
+        const orden = await Orden.findByPk(req.params.id);
+        
         if (!orden) return res.status(404).json({ error: 'Orden no encontrada' });
+
+        await orden.update({ estado });
         res.json(orden);
     } catch (err) {
         res.status(400).json({ error: err.message });

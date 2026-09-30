@@ -1,22 +1,45 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../config/db');
 
-const TransaccionSchema = new mongoose.Schema({
-    wompiReference: { type: String, unique: true, required: true },
-    amountInCents: { type: Number, required: true },
-    currency:       { type: String, default: 'COP' },
-    status: {
-        type: String,
-        enum: ['PENDING', 'APPROVED', 'DECLINED', 'VOIDED', 'ERROR'],
-        default: 'PENDING'
+const Transaccion = sequelize.define('Transaccion', {
+    id: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true
     },
-    wompiTransactionId: { type: String },
-    orden:              { type: mongoose.Schema.Types.ObjectId, ref: 'Orden' },
-    // Datos del carrito guardados temporalmente hasta que Wompi confirme
+    wompiReference: {
+        type: DataTypes.STRING(100),
+        allowNull: false,
+        unique: true
+    },
+    amountInCents: {
+        type: DataTypes.BIGINT,
+        allowNull: false
+    },
+    currency: {
+        type: DataTypes.STRING(10),
+        defaultValue: 'COP'
+    },
+    status: {
+        type: DataTypes.ENUM('PENDING', 'APPROVED', 'DECLINED', 'VOIDED', 'ERROR'),
+        defaultValue: 'PENDING'
+    },
+    wompiTransactionId: {
+        type: DataTypes.STRING(100),
+        allowNull: true
+    },
+    orden_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true
+    },
+    // Guardamos la información temporal del carrito como Texto Largo en formato JSON
     pendingOrderData: {
-        usuario:   mongoose.Schema.Types.ObjectId,
-        productos: Array,
-        total:     Number
+        type: DataTypes.TEXT,
+        allowNull: true
     }
-}, { timestamps: true });
+}, {
+    tableName: 'transacciones',
+    timestamps: true
+});
 
-module.exports = mongoose.model('Transaccion', TransaccionSchema);
+module.exports = Transaccion;
