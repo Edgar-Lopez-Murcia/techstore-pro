@@ -7,4 +7,25 @@
   --color-azul: #3b82f6;
   --color-texto: #1a1a2e;
   --color-texto-dim: #64748b;
+
+
+  /* Tonos principales del cuerpo del robot */
+  --color-azul-robot: #3a86ff;
+  --color-morado-robot: #8338ec;
+  
+  /* Tonos del visor y ojo brillante */
+  --color-cian-brillante: #00f5d4;
+  --color-azul-visor: #00bbf9;
+  --color-fondo-visor: #0f0c1b;
+
+  /* Degradado corporativo premium (Listo para usar en fondos o textos) */
+  --gradient-robot: linear-gradient(135deg, var(--color-azul-robot), var(--color-morado-robot));
+
+}
+
+.text-multicolor {
+  background: var(--gradient-robot);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
