@@ -18,4 +18,4 @@ function Navbar() {
     )
 }
 
-export default Nav
+export default Navbar
