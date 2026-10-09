@@ -1,6 +1,9 @@
+import { useState } from "react"
 import Navbar from "./Navbar.jsx"
 import Footer from "./Footer.jsx"
 import ProductCard from "./ProductCard.jsx"
+import Contador from "./Contador.jsx"
+
 
 
 const propductos = [
@@ -19,7 +22,7 @@ const propductos = [
     stock: 14
   },
   {
-    nombre: "Moonitor 24",
+    nombre: "Monitor 24",
     descripcion: "Full  HD, 75Hz, panel IP",
     precio: "$899.900",
     imagen: "https://lasmejorescompras.com/wp-content/uploads/2026/05/MONITOR-JANUS-IPS-24-GAMER-144HZ.jpg",
@@ -38,11 +41,26 @@ const propductos = [
 
 
 function App() {
+  const [busqueda, setBusqueda] = useState("")
   return (
     <main className="min-h-screen max-w-6xl mx-auto px-6 py-10 flex flex-col gap-10">
       <Navbar />
+      <div className="flex items-center gap-3">
+        <input 
+          type="text" 
+          placeholder="Buscar producto..."
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+          className="w-full max-w-md px-4 py-2 border-2 border-slate-200 rounded-lg"
+        />
+        <p className="text-sm text-texto-dim whitespace-nowrap">
+          {propductos.filter((p) => p.nombre.toLowerCase().includes(busqueda.toLowerCase())).length} Producto(s) encontrado(s)
+        </p>
+      </div>
       <section className="grow grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3  gap-6 auto-rows-max">
-        {propductos.map((p) =>(
+        {propductos
+        .filter((p) => p.nombre.toLowerCase().includes(busqueda.toLowerCase()))
+        .map((p) =>(
           <ProductCard
           key={p.nombre}
           nombre={p.nombre}
@@ -53,8 +71,14 @@ function App() {
           />
         ))}
 
-
       </section>
+      {propductos.filter((p) => p.nombre.toLowerCase().includes(busqueda.toLowerCase())).length === 0 && (
+        <p className="text-center text-texto-dim py-10">
+          No se encontraron productos
+        </p>
+      )} 
+      
+      <Contador />
 
       <Footer />
     </main>
