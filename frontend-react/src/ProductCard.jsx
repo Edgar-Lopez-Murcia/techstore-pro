@@ -22,7 +22,7 @@ function ProductCard(props) {
                 </CardItem>
 
                 {/* Contenedor interno para organizar los textos */}
-                <div className="flex flex-col gap-1 flex-grow">
+                <div className="flex flex-col gap-1 ">
                     {/* Título del producto */}
                     <CardItem 
                         as="h3" 
