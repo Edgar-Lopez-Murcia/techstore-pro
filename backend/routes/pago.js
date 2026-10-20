@@ -82,7 +82,7 @@ router.get('/estado/:reference', verificarToken, async (req, res) => {
 
         if (tx.status === 'PENDING') {
             const wompiRes = await fetch(
-                `https://wompi.co{tx.wompiReference}`,
+                `https://production.wompi.co/v1/transactions?reference=${tx.wompiReference}`,
                 { headers: { Authorization: `Bearer ${process.env.WOMPI_PRIVATE_KEY}` } }
             );
             if (wompiRes.ok) {
@@ -95,8 +95,10 @@ router.get('/estado/:reference', verificarToken, async (req, res) => {
         }
         res.json({ status: tx.status, ordenId: tx.orden_id ?? null });
     } catch (err) {
+        console.error("Error completo en la consola:", err);
         res.status(500).json({ error: 'Error interno de polling' });
     }
 });
+
 
 module.exports = router;

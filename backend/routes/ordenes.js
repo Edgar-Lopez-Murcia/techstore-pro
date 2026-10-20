@@ -54,6 +54,46 @@ router.get('/', verificarToken, async (req, res) => {
     }
 });
 
+// 4. GET /api/ordenes/:id - Obtener una orden específica por su ID con sus detalles
+router.get('/:id', verificarToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const orden = await Orden.findOne({
+            where: { id: id },
+            include: [
+                { 
+                    model: Usuario, 
+                    as: 'cliente', 
+                    attributes: ['id', 'nombre', 'email'] 
+                },
+                {
+                    model: DetalleOrden,
+                    as: 'detalles',
+                    include: [{ 
+                        model: Producto, 
+                        as: 'articulo', 
+                        attributes: ['id', 'nombre', 'precio', 'imagen'] 
+                    }]
+                }
+            ]
+        });
+
+        // Si la orden no existe en la base de datos
+        if (!orden) {
+            return res.status(404).json({ error: 'La orden solicitada no existe.' });
+        }
+
+        if (orden.usuario_id !== req.usuario.id && req.usuario.rol !== 'admin') {
+            return res.status(403).json({ error: 'No tienes permisos para ver esta orden.' });
+        }
+
+        res.json(orden);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // 3. GET /api/ordenes/admin/todas - El administrador ve todas las órdenes
 router.get('/admin/todas', verificarToken, verificarAdmin, async (req, res) => {
     try {
