@@ -1,62 +1,50 @@
-import React from "react";
-import { CardContainer, CardBody, CardItem } from "./components/Card3D";
+import { useContext } from "react";
+import { CartContext } from "./CartContext.jsx";
 
 function ProductCard(props) {
+    const { agregarAlCarrito } = useContext(CartContext);
+
+    function agregar() {
+        agregarAlCarrito({
+        id: props.id,
+        nombre: props.nombre,
+        precio: props.precio,
+        imagen: props.imagen,
+        });
+    }
+
     return (
-        // Añadimos p-3 para crear la separación limpia entre cada caja del catálogo
-        <CardContainer containerClassName="p-3">
-            
-            {/* 
-                Contenedor principal con tus clases estéticas originales,
-                ajustado a un ancho máximo compacto (max-w-xs)
-            */}
-            <CardBody className="flex flex-col gap-2 p-4 rounded-xl shadow-md bg-white border border-neutral-100 max-w-xs w-full h-full justify-between">
-                
-                {/* Imagen del producto (Reducida a h-48 para mantener todo dentro de la tarjeta) */}
-                <CardItem translateZ="50" className="w-full">
-                    <img 
-                        src={props.imagen} 
-                        className="rounded-lg h-48 w-full object-cover shadow-sm" 
-                        alt={props.nombre}
-                    />
-                </CardItem>
+        <article className="group relative aspect-4/5 overflow-hidden rounded-3xl bg-ink">
+        <img
+            src={props.imagen.replace("w=400&h=250", "w=800&h=1000")}
+            alt={props.nombre}
+            className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+        />
+        <div className="absolute inset-0 bg-linear-to-t from-ink/90 via-ink/60 via-30% to-transparent to-60%"></div>
 
-                {/* Contenedor interno para organizar los textos */}
-                <div className="flex flex-col gap-1 ">
-                    {/* Título del producto */}
-                    <CardItem 
-                        as="h3" 
-                        translateZ="30" 
-                        className="font-bold text-base text-neutral-800 mt-1 line-clamp-1"
-                    >
-                        {props.icono} {props.nombre}
-                    </CardItem>
+        <span className="absolute top-4 left-4 bg-paper/90 text-ink rounded-full px-3 py-1.5 font-mono text-[11px] font-bold tracking-wider">
+            REF {String(props.id).padStart(2, "0")}
+        </span>
 
-                    {/* Descripción del producto (Cambiado min-h-[2rem] por min-h-8) */}
-                    <CardItem 
-                        as="p" 
-                        translateZ="20" 
-                        className="text-neutral-500 text-xs line-clamp-2 min-h-8"
-                    >
-                        {props.descripcion}
-                    </CardItem>
-                </div>
-
-                {/* Sección inferior perfectamente alineada para el precio y el botón */}
-                <CardItem translateZ="40" className="w-full flex justify-between items-center mt-2 pt-2 border-t border-neutral-50">
-                    {/* Tu precio original en verde y negrita */}
-                    <span className="text-green-600 font-extrabold text-base">
-                        {props.precio}
-                    </span>
-                    
-                    {/* Tu botón original de Ver más */}
-                    <button className="px-3 py-1 rounded-lg bg-black text-white text-[11px] font-bold hover:bg-neutral-800 transition-colors">
-                        Ver más
-                    </button>
-                </CardItem>
-
-            </CardBody>
-        </CardContainer>
+        <div className="absolute inset-x-5 bottom-5 flex flex-col gap-2.5 text-paper">
+            <h3 className="font-display font-semibold text-xl leading-tight">
+            {props.nombre}
+            </h3>
+            <p className="text-[13px] leading-relaxed text-paper/75 line-clamp-2">
+            {props.descripcion}
+            </p>
+            <div className="flex items-center justify-between gap-3 mt-1.5">
+            <span className="font-mono text-[15px] font-bold">{props.precio}</span>
+            <button
+                onClick={agregar}
+                aria-label={"Agregar " + props.nombre + " al carrito"}
+                className="bg-paper text-ink rounded-full px-4 py-2.5 text-[13px] font-semibold hover:bg-accent hover:text-paper transition-colors"
+            >
+                Agregar +
+            </button>
+            </div>
+        </div>
+        </article>
     );
 }
 

@@ -7,8 +7,9 @@ const Producto = require('./models/Producto');
 const authRoutes = require('./routes/auth');
 const verificarToken = require('./middleware/auth')
 const productosRoutes = require('./routes/productos');
-const ordenesRoutes = require('./routes/ordenes')
-const pagoRoutes   = require('./routes/pago')
+const ordenesRoutes = require('./routes/ordenes');
+const pagoRoutes   = require('./routes/pago');
+const contactoRoutes = require('./routes/contacto')
 
 // 2. Crear la aplicación y definir el puerto
 const app = express();
@@ -49,3 +50,5 @@ app.use('/api/ordenes', ordenesRoutes);
 app.use('/api/pagos',pagoRoutes);
 
 app.use('/api/ordenes/admin/todas',ordenesRoutes)
+
+app.use('/api/contacto', contactoRoutes)

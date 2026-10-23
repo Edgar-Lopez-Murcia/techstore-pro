@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react"
 import { Routes, Route} from 'react-router-dom'
 import Navbar from "./Navbar.jsx";
 import Footer from "./Footer.jsx";
-import Contador from "./Contador.jsx";
 import Home from "./Home.jsx";
 import Productos from "./Productos.jsx";
+import Nosotros from './Nosotros.jsx';
+import Contacto from "./Contacto.jsx";
 import NotFound from "./NotFound.jsx";
 
 
@@ -12,18 +12,19 @@ import NotFound from "./NotFound.jsx";
 
 function App() {
   return (
-    <main className="min-h-screen max-w-6xl mx-auto px-6 py-10 flex flex-col gap-10">
+    <div className="min-h-screen flex flex-col">
       <Navbar />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/productos" element={<Productos />}/>
-        <Route path="*" element={<NotFound/>} />
-      </Routes>
-      
-      <Contador />
-
+      <main className='flex-1 w-full max-w-6xl mx-auto px-6 py-10'>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/productos" element={<Productos />}/>
+          <Route path="/nosotros" element={<Nosotros />}/>
+          <Route path="/contacto" element={<Contacto />}/>
+          <Route path="*" element={<NotFound/>} />
+        </Routes>
+      </main>
       <Footer />
-    </main>
+    </div>
   )
 }
 export default App

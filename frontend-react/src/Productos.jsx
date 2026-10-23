@@ -26,6 +26,10 @@ function Productos() {
         cargarProductos();
     }, []);
 
+    const filtrados= productos.filter((p) =>
+    p.nombre.toLowerCase().includes(busqueda.toLocaleLowerCase()),
+    );
+
     return (
         
         <div className="flex flex-col gap-10">

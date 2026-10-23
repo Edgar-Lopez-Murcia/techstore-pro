@@ -1,66 +1,66 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
-    <defs>
-        <linearGradient id="robotGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#3a86ff" />
-            <stop offset="100%" stop-color="#8338ec" />
-        </linearGradient>
+      <defs>
+            <linearGradient id="robotGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#3a86ff" />
+                  <stop offset="100%" stop-color="#8338ec" />
+            </linearGradient>
 
-        <linearGradient id="eyeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stop-color="#00f5d4" />
-            <stop offset="100%" stop-color="#00bbf9" />
-        </linearGradient>
+            <linearGradient id="eyeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#00f5d4" />
+                  <stop offset="100%" stop-color="#00bbf9" />
+            </linearGradient>
 
-        <filter id="dropShadow" x="-10%" y="-10%" width="120%" height="120%">
-            <feDropShadow dx="0" dy="8" stdDeviation="6" flood-opacity="0.3" />
-        </filter>
-    </defs>
+            <filter id="dropShadow" x="-10%" y="-10%" width="120%" height="120%">
+                  <feDropShadow dx="0" dy="8" stdDeviation="6" flood-opacity="0.3" />
+            </filter>
+      </defs>
 
-    <g filter="url(#dropShadow)">
+      <g filter="url(#dropShadow)">
 
-        <!-- PATAS -->
-        <path d="M150 380 C120 440 160 460 170 460 C185 460 190 420 195 390 Z"
-              fill="#3a86ff" opacity="0.9" />
+            <!-- PATAS -->
+            <path d="M150 380 C120 440 160 460 170 460 C185 460 190 420 195 390 Z"
+                  fill="#3a86ff" opacity="0.9" />
 
-        <path d="M362 380 C392 440 352 460 342 460 C327 460 322 420 317 390 Z"
-              fill="#8338ec" opacity="0.9" />
+            <path d="M362 380 C392 440 352 460 342 460 C327 460 322 420 317 390 Z"
+                  fill="#8338ec" opacity="0.9" />
 
-        <path d="M220 400 C200 470 240 480 256 480 C272 480 275 420 260 400 Z"
-              fill="#6060ff" />
+            <path d="M220 400 C200 470 240 480 256 480 C272 480 275 420 260 400 Z"
+                  fill="#6060ff" />
 
-        <!-- CUERPO -->
-        <circle cx="256" cy="240" r="160" fill="url(#robotGrad)" />
+            <!-- CUERPO -->
+            <circle cx="256" cy="240" r="160" fill="url(#robotGrad)" />
 
-        <!-- DETALLES -->
-        <path d="M102 200 C150 170 362 170 410 200 C390 140 320 90 256 90 C192 90 122 140 102 200 Z"
-              fill="#ffffff" opacity="0.15" />
+            <!-- DETALLES -->
+            <path d="M102 200 C150 170 362 170 410 200 C390 140 320 90 256 90 C192 90 122 140 102 200 Z"
+                  fill="#ffffff" opacity="0.15" />
 
-        <path d="M98 220 L414 220 L410 250 L102 250 Z"
-              fill="#1a1a2e" opacity="0.4" />
+            <path d="M98 220 L414 220 L410 250 L102 250 Z"
+                  fill="#1a1a2e" opacity="0.4" />
 
-        <!-- VISOR -->
-        <path d="M100 210 C140 195 372 195 412 210 C416 240 416 260 412 280 C372 295 140 295 100 280 C96 260 96 240 100 210 Z"
-              fill="#0f0c1b" />
+            <!-- VISOR -->
+            <path d="M100 210 C140 195 372 195 412 210 C416 240 416 260 412 280 C372 295 140 295 100 280 C96 260 96 240 100 210 Z"
+                  fill="#0f0c1b" />
 
-        <!-- OJO -->
-        <circle cx="256" cy="245" r="50" fill="url(#eyeGrad)" />
+            <!-- OJO -->
+            <circle cx="256" cy="245" r="50" fill="url(#eyeGrad)" />
 
-        <circle cx="242" cy="232" r="14"
-                fill="#ffffff" opacity="0.7" />
+            <circle cx="242" cy="232" r="14"
+                  fill="#ffffff" opacity="0.7" />
 
-        <circle cx="256" cy="245" r="42"
-                fill="none"
-                stroke="#ffffff"
-                stroke-width="2"
-                opacity="0.3" />
+            <circle cx="256" cy="245" r="42"
+                  fill="none"
+                  stroke="#ffffff"
+                  stroke-width="2"
+                  opacity="0.3" />
 
-        <!-- ANTENAS -->
-        <rect x="210" y="55" width="10" height="30" rx="5"
-              fill="#3a86ff"
-              transform="rotate(-20 210 55)" />
+            <!-- ANTENAS -->
+            <rect x="210" y="55" width="10" height="30" rx="5"
+                  fill="#3a86ff"
+                  transform="rotate(-20 210 55)" />
 
-        <rect x="292" y="55" width="10" height="30" rx="5"
-              fill="#8338ec"
-              transform="rotate(20 292 55)" />
+            <rect x="292" y="55" width="10" height="30" rx="5"
+                  fill="#8338ec"
+                  transform="rotate(20 292 55)" />
 
-    </g>
+      </g>
 </svg>

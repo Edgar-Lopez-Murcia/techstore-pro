@@ -1,31 +1,34 @@
 @import "tailwindcss";
 
 @theme {
-  --color-verde: #39a900;
-  --color-verde-dark: #2d8400;
-  --color-naranja: #ff6b00;
-  --color-azul: #3b82f6;
-  --color-texto: #1a1a2e;
-  --color-texto-dim: #64748b;
+  --color-ink: #0A0A0A;
+  --color-paper: #FFFFFF;
 
+  /* Escala de grises neutro */
+  --color-gray-50: #FAFAFA;
+  --color-gray-100: #F2F2F2;
+  --color-gray-300: #D8D8D8;
+  --color-gray-500: #8A8A8A;
+  --color-gray-700: #4A4A4A;
 
-  /* Tonos principales del cuerpo del robot */
-  --color-azul-robot: #3a86ff;
-  --color-morado-robot: #8338ec;
-  
-  /* Tonos del visor y ojo brillante */
-  --color-cian-brillante: #00f5d4;
-  --color-azul-visor: #00bbf9;
-  --color-fondo-visor: #0f0c1b;
+  /* Acanto de marca - Usar con moderación */
+  --color-accent: #FF4B2B;
+  --color-accent-dark: #D93A1E;
 
-  /* Degradado corporativo premium (Listo para usar en fondos o textos) */
-  --gradient-robot: linear-gradient(135deg, var(--color-azul-robot), var(--color-morado-robot));
+  /* Tipografía */
+  --font-wordmark: 'Michroma', sans-serif;
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Forma y profundidad */
+  --radius-card: 10px;
+  --shadow--float: 0 8px 24px rgba(0, 0, 0, 0, 0.08)
 
 }
 
-.text-multicolor {
-  background: var(--gradient-robot);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+@layer base {
+  body {
+    @apply bg-paper text-ink font-sans antialiased;
+  }
 }
+
