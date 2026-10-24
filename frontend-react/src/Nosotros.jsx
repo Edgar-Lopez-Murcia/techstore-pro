@@ -18,19 +18,22 @@ const valores = [
     // Reemplaza estos datos de ejemplo por los integrantes reales de tu grupo
     const equipo = [
     {
-        nombre: "Integrante 1",
+        nombre: "inalik",
         cargo: "Desarrollo frontend",
         descripcion: "Construye las páginas con React y Tailwind CSS.",
+        imagen: "https://images.pexels.com/photos/20691027/pexels-photo-20691027.jpeg",
     },
     {
-        nombre: "Integrante 2",
+        nombre: "Edgar López",
         cargo: "Desarrollo backend",
         descripcion: "Crea la API con Express y conecta MongoDB Atlas.",
+        imagen: "https://cdn.artphotolimited.com/images/5ca5bf82ce46dc3d348294d2/300x300/loup-europeen-dans-la-neige-european-wolf.jpg",
     },
     {
-        nombre: "Integrante 3",
+        nombre: "Martin López",
         cargo: "Pruebas y calidad",
         descripcion: "Verifica que cada función trabaje como se diseñó.",
+        imagen: "https://images.pexels.com/photos/20015262/pexels-photo-20015262.jpeg?cs=srgb&dl=pexels-billsalazar-20015262.jpg&fm=jpg"
     },
     ];
 
@@ -87,8 +90,8 @@ const valores = [
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {equipo.map((persona, i) => (
                 <div key={persona.nombre} className="flex flex-col gap-3">
-                <div className="size-20 rounded-full bg-gray-100 flex items-center justify-center font-mono text-sm text-gray-500">
-                    {String(i + 1).padStart(2, "0")}
+                <div className="size-20 rounded-full bg-gray-100 overflow-hidden flex items-center justify-center font-mono text-sm text-gray-500">
+                    <img src={persona.imagen} alt={persona.imagen} className="w-full h-full object-cover rounded-full" />
                 </div>
                 <h3 className="font-display font-semibold text-lg">{persona.nombre}</h3>
                 <p className="font-mono text-xs uppercase tracking-wider text-accent-dark">
