@@ -30,7 +30,7 @@ const mensajeSchema = new mongoose.Schema({
     },
     mensaje: {
         type: String,
-        reuqired: [true, 'El mensaje es obligatorio'],
+        required: [true, 'El mensaje es obligatorio'],
         trim: true,
         minlength: [10, 'El mensaje debe tener al menos 10 caracteres'],
         maxlength: [1000, 'El mensaje no puede superar los 1000 caracteres']
