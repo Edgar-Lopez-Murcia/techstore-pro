@@ -1,5 +1,6 @@
 import { useContext, useEffect } from "react";
 import { CartContext} from "./CartContext.jsx";
+import { Link } from "react-router-dom";
 
 function ProductoModal({ producto, onCerrar }) {
     const { agregarAlCarrito } = useContext(CartContext);
@@ -60,6 +61,18 @@ function ProductoModal({ producto, onCerrar }) {
                             onClick={agregar}
                             className="mt-auto bg-ink text-paper rounded-card py-3.5 text-sm font-semibold hover:bg-accent transition-colors">
                                 Agregar al carrito
+                            </button>
+                            <Link
+                                to={"/productos/" + producto._id}
+                                className="text-center border border-gray-300 rounded-card py-3.5 text-sm font-semibold hover:border-ink transition-colors"
+                            >
+                                Ver ficha completa
+                            </Link>
+                            <button
+                                onClick={onCerrar}
+                                className="text-sm font-semibold text-gray-700 hover:text-ink transition-colors"
+                            >
+                                Seguir viendo
                             </button>
                         </div>
                 </div>
