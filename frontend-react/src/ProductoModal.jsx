@@ -13,7 +13,7 @@ function ProductoModal({ producto, onCerrar }) {
         document.body.style.overflow = "hidden";
 
         return () => {
-            document.addEventListener("keydown", alPulsar);
+            document.removeEventListener("keydown", alPulsar);
             document.body.style.overflow = "";
         };
     }, [onCerrar]);
@@ -63,7 +63,7 @@ function ProductoModal({ producto, onCerrar }) {
                                 Agregar al carrito
                             </button>
                             <Link
-                                to={"/productos/" + producto._id}
+                                to={"/productos/" + producto.id}
                                 className="text-center border border-gray-300 rounded-card py-3.5 text-sm font-semibold hover:border-ink transition-colors"
                             >
                                 Ver ficha completa

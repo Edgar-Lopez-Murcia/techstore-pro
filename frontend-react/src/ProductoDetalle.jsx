@@ -6,7 +6,7 @@ function ProductoDetalle() {
     const { id } = useParams();
     const { agregarAlCarrito} = useContext(CartContext);
     const [ producto, setProducto] = useState(null);
-    const [ cargando , setCargando] = useState(null);
+    const [ cargando , setCargando] = useState(true);
     const [ error, setError ] = useState(null);
 
     useEffect(() => {
@@ -22,6 +22,7 @@ function ProductoDetalle() {
             .catch(() => setError("Producto no encontrado"))
             .finally(() => setCargando(false));
     }, [id]);
+
     useEffect(() => {
         if (!producto) return;
         const tituloAnterior = document.title;
@@ -31,6 +32,12 @@ function ProductoDetalle() {
             document.title = tituloAnterior;
         };
     }, [producto]);
+
+    useEffect(() => {
+        fetch("http://localhost:3000/api/productos")
+            .then((res) => res.json())
+            .catch(() => setOtros([]));
+    }, []);
 
 
     function agregar() {
@@ -43,7 +50,7 @@ function ProductoDetalle() {
     }
 
     if (cargando) {
-        return <p className="text-center py-20 text-gray-500">Cargando producto...</p>
+        return <p className="text-center py-20 text-gray-500">Cargando producto...</p>;
     }
 
 
