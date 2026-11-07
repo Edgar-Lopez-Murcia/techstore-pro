@@ -1,6 +1,6 @@
 import { useState, useEffect, useContext } from "react";
 import { useParams, Link} from "react-router-dom";
-import { CartContext } from "./CartContext";
+import { CartContext } from "./CartContext.jsx";
 
 function ProductoDetalle() {
     const { id } = useParams();
@@ -34,7 +34,7 @@ function ProductoDetalle() {
     }, [producto]);
 
     useEffect(() => {
-        fetch("http://localhost:3000/api/productos")
+        fetch("http://localhost:3000/api/productos/")
             .then((res) => res.json())
             .catch(() => setOtros([]));
     }, []);

@@ -63,7 +63,7 @@ function ProductoModal({ producto, onCerrar }) {
                                 Agregar al carrito
                             </button>
                             <Link
-                                to={"/productos/" + producto.id}
+                                to={"/productos/" + producto._id}
                                 className="text-center border border-gray-300 rounded-card py-3.5 text-sm font-semibold hover:border-ink transition-colors"
                             >
                                 Ver ficha completa
