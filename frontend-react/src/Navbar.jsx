@@ -11,9 +11,10 @@ const enlaces = [
 ];
 
 function Navbar() {
-    const { items, vaciarCarrito } = useContext(CartContext);
+    const { items } = useContext(CartContext);
     const { usuario, logout } = useContext(AuthContext);
     const [abierto, setAbierto] = useState(false);
+    const unidades = items.reduce((suma, item) => suma + item.cantidad, 0 );
 
     function cerrar() {
         setAbierto(false);
@@ -43,61 +44,57 @@ function Navbar() {
             </ul>
 
             <div className="flex items-center gap-4">
-            <span className="font-mono text-xs md:text-[13px] text-gray-700 whitespace-nowrap">
-                Carrito ( {items.length} )
-            </span>
-            {items.length > 0 && (
-                <button
-                onClick={vaciarCarrito}
-                className="hidden md:block text-xs text-accent-dark underline"
-                >
-                Vaciar
-                </button>
-            )}
-            {usuario ? (
-                <div className="hidden md:flex items-center gap-4">
-                <span className="text-sm font-semibold">Hola, {usuario}</span>
-                <button
-                    onClick={logout}
-                    className="text-sm text-gray-700 underline hover:text-ink transition-colors"
-                >
-                    Salir
-                </button>
-                </div>
-            ) : (
                 <Link
-                to="/login"
-                className="hidden md:block bg-ink text-paper px-5 py-2.5 rounded-card text-sm font-semibold hover:bg-accent transition-colors"
-                >
-                Ingresar
+                    to="/carrito"
+                    onClick={cerrar}
+                    className="font-mono text-xs md:text-[13px] text-gray-700 whitespace-nowrap hover:text-ink transition-colors">
+                        Carrito ( {unidades} )
                 </Link>
-            )}
+        
+                {usuario ? (
+                    <div className="hidden md:flex items-center gap-4">
+                    <span className="text-sm font-semibold">Hola, {usuario}</span>
+                    <button
+                        onClick={logout}
+                        className="text-sm text-gray-700 underline hover:text-ink transition-colors"
+                    >
+                        Salir
+                    </button>
+                    </div>
+                ) : (
+                    <Link
+                    to="/login"
+                    className="hidden md:block bg-ink text-paper px-5 py-2.5 rounded-card text-sm font-semibold hover:bg-accent transition-colors"
+                    >
+                    Ingresar
+                    </Link>
+                )}
 
-            <button
-                onClick={() => setAbierto(!abierto)}
-                aria-label={abierto ? "Cerrar menú" : "Abrir menú"}
-                aria-expanded={abierto}
-                className="md:hidden relative size-10 -mr-2"
-            >
-                <span
-                className={
-                    "absolute left-2 top-1/2 h-0.5 w-6 -mt-px rounded-full bg-ink transition-all duration-300 " +
-                    (abierto ? "rotate-45" : "-translate-y-2")
-                }
-                ></span>
-                <span
-                className={
-                    "absolute left-2 top-1/2 h-0.5 w-6 -mt-px rounded-full bg-ink transition-all duration-300 " +
-                    (abierto ? "opacity-0 scale-x-0" : "")
-                }
-                ></span>
-                <span
-                className={
-                    "absolute left-2 top-1/2 h-0.5 w-6 -mt-px rounded-full bg-ink transition-all duration-300 " +
-                    (abierto ? "-rotate-45" : "translate-y-2")
-                }
-                ></span>
-            </button>
+                <button
+                    onClick={() => setAbierto(!abierto)}
+                    aria-label={abierto ? "Cerrar menú" : "Abrir menú"}
+                    aria-expanded={abierto}
+                    className="md:hidden relative size-10 -mr-2"
+                >
+                    <span
+                    className={
+                        "absolute left-2 top-1/2 h-0.5 w-6 -mt-px rounded-full bg-ink transition-all duration-300 " +
+                        (abierto ? "rotate-45" : "-translate-y-2")
+                    }
+                    ></span>
+                    <span
+                    className={
+                        "absolute left-2 top-1/2 h-0.5 w-6 -mt-px rounded-full bg-ink transition-all duration-300 " +
+                        (abierto ? "opacity-0 scale-x-0" : "")
+                    }
+                    ></span>
+                    <span
+                    className={
+                        "absolute left-2 top-1/2 h-0.5 w-6 -mt-px rounded-full bg-ink transition-all duration-300 " +
+                        (abierto ? "-rotate-45" : "translate-y-2")
+                    }
+                    ></span>
+                    </button>
             </div>
         </div>
 
