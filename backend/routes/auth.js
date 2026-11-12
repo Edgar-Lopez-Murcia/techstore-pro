@@ -10,8 +10,17 @@ const verificarToken = require('../middleware/auth');
 // 2. POST /api/auth/registro - Crear cuenta nueva
 router.post('/registro', async (req, res) => {
     try {
-        const { nombre, email, password, rol, departamento, municipio } = req.body;
-
+        const { nombre, email, password, departamento, municipio } = req.body;
+        
+        if (!nombre || nombre.trim().length < 3) {
+            return res.status(400).json({ error: 'El nombre debe tener el menos 3 caracteres'});
+        }
+        if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+            return res.status(400).json({ error: 'El correo no es válido'});
+        }
+        if (!password || password.length < 6) {
+            return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres'});
+        }
         // Verificar que el email no exista ya
         const existe = await Usuario.findOne({ email });
 
@@ -22,14 +31,13 @@ router.post('/registro', async (req, res) => {
         }
 
         // Encriptar la contraseña en 10 rondas de bcrypt
-        const hash = await bcrypt.hash(password, 10);
+        const hash = await bcrypt.hash(password, 10); 
 
         // Guardar el usuario con la contraseña encriptada
         const usuario = await Usuario.create({
             nombre,
             email,
             password: hash,
-            rol,
             departamento,
             municipio
         });
