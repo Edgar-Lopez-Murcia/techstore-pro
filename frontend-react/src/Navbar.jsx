@@ -2,7 +2,6 @@ import { useState, useContext } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { CartContext } from "./CartContext.jsx";
 import { AuthContext } from "./AuthContext.jsx";
-import { link } from "../../backend/routes/auth.js";
 
 const enlaces = [
     { ruta: "/", texto: "Inicio" },
@@ -11,7 +10,7 @@ const enlaces = [
     { ruta: "/contacto", texto: "Contacto" },
 ];
 
-    function Navbar() {
+function Navbar() {
     const { items, vaciarCarrito } = useContext(CartContext);
     const { usuario, logout } = useContext(AuthContext);
     const [abierto, setAbierto] = useState(false);
@@ -57,24 +56,22 @@ const enlaces = [
             )}
             {usuario ? (
                 <div className="hidden md:flex items-center gap-4">
-                    <span className="text-sm font-semibold">Hola, {usuario}</span>
-                    <button
-                        onClick={logout}
-                        className="text-sm text-gray-700 underline hover:text-ink transition-colors">
-                            salir
-                        </button>
+                <span className="text-sm font-semibold">Hola, {usuario}</span>
+                <button
+                    onClick={logout}
+                    className="text-sm text-gray-700 underline hover:text-ink transition-colors"
+                >
+                    Salir
+                </button>
                 </div>
             ) : (
                 <Link
-                    to="/login"
-                    className="hidden md:block bg-ink text-paper px-5 py-2.5 rounded-card text-sm font-semibold hover:bg-accent transition-colors">
-                        Ingresar
-                    </Link>
+                to="/login"
+                className="hidden md:block bg-ink text-paper px-5 py-2.5 rounded-card text-sm font-semibold hover:bg-accent transition-colors"
+                >
+                Ingresar
+                </Link>
             )}
-
-            <button className="hidden md:block bg-ink text-paper px-5 py-2.5 rounded-card text-sm font-semibold hover:bg-accent transition-colors">
-                {usuario ? usuario : "Ingresar"}
-            </button>
 
             <button
                 onClick={() => setAbierto(!abierto)}
@@ -111,24 +108,6 @@ const enlaces = [
             (abierto ? "grid-rows-[1fr]" : "grid-rows-[0fr]")
             }
         >
-            {usuario ? (
-                <div className="flex items-center justify-between">
-                    <span className="text-sm font-semibold">Hola, {usuario}</span>
-                    <button
-                        onClick={() => {
-                            logout();
-                            cerrar();
-                        }}
-                        className="bg-ink text-paper px-6py-3 rounded-card text-sm font-semibold"> Salir</button>
-                </div>
-            ): (
-                <Link
-                    to="/login"
-                    onClick={cerrar}
-                    className="block w-full text-center bg-ink text-paper py-3.5 rounded-card text-sm font-semibold"
-                    >
-                </Link>
-            )}
             <div className="overflow-hidden">
             <ul className="flex flex-col pt-6 pb-4">
                 {enlaces.map((enlace, i) => (
@@ -160,9 +139,28 @@ const enlaces = [
                     (abierto ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2")
                 }
                 >
-                <button className="w-full bg-ink text-paper py-3.5 rounded-card text-sm font-semibold">
-                    {usuario ? usuario : "Ingresar"}
-                </button>
+                {usuario ? (
+                    <div className="flex items-center justify-between">
+                    <span className="text-sm font-semibold">Hola, {usuario}</span>
+                    <button
+                        onClick={() => {
+                        logout();
+                        cerrar();
+                        }}
+                        className="bg-ink text-paper px-6 py-3 rounded-card text-sm font-semibold"
+                    >
+                        Salir
+                    </button>
+                    </div>
+                ) : (
+                    <Link
+                    to="/login"
+                    onClick={cerrar}
+                    className="block w-full text-center bg-ink text-paper py-3.5 rounded-card text-sm font-semibold"
+                    >
+                    Ingresar
+                    </Link>
+                )}
                 </li>
             </ul>
             </div>
