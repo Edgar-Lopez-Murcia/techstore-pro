@@ -1,5 +1,5 @@
 import { useContext, useEffect } from "react";
-import { CartContext} from "./CartContext.jsx";
+import { CartContext } from "../context/CartContext.jsx";
 import { Link } from "react-router-dom";
 
 function ProductoModal({ producto, onCerrar }) {
