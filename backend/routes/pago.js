@@ -1,8 +1,9 @@
 const express         = require('express');
 const crypto          = require('crypto'); // nativo de Node
 const Orden           = require('../models/Orden');
+const Producto        = require('../models/Producto');
 const Transaccion     = require('../models/Transaccion');
-const verificarToken = require('../middleware/auth');
+const verificarToken  = require('../middleware/auth');
 const router          = express.Router();
 
 // // Crea la Orden cuando Wompi confirma un pago APPROVED (usada por el polling y por el web
@@ -15,7 +16,7 @@ async function confirmarAprobado(transaccion, wompiTx) {
         const orden = await Orden.create({
             usuario: pod.usuario, productos: pod.productos, total: pod.total,
             wompiTransactionId: wompiTx.id, wompiReference: wompiTx.reference,
-            estado: 'PAG0_CONFIRMADO'
+            estado: 'PAGO_CONFIRMADO'
         });
         transaccion.orden = orden._id;
     }
@@ -23,17 +24,38 @@ async function confirmarAprobado(transaccion, wompiTx) {
     await transaccion.save();
 }
 
-// POST /api/pagos/firma - generar firma de integridad para el Widget de Wompi
-// Valida el carrito, genera una referencia única, calcula la firma SHA256
-// y guarda los datos del pedido en Transaccion con estado PENDING.
-router.post('/firma', verificarToken, async (req, res) => {
-    const { productos, total } = req.body;
 
-    if (!productos?.length || !total) {
-        return res.status(400).json({ error: 'Carrito vacío o total inválido' });
+router.post('/firma', verificarToken, async (req, res) => {
+    const { productos } = req.body;
+
+    if (!Array.isArray(productos) ||productos.length === 0) {
+        return res.status(400).json({ error: 'Carrito vacío' });
+    }
+
+    const lineas = [];
+    for (const p of productos) {
+        const id = Number(p?.id);
+        const cantidad = Number(p?.cantidad);
+        if (!Number.isInteger(id) || !Number.isInteger(cantidad) || cantidad < 1) {
+            return res.status(400).json({ error: 'Carrito con productos inválidos'});
+        }
+        lineas.push({ id, cantidad });
     }
 
     try {
+
+        const ids = lineas.map((l) => l.id);
+        const enBase = await Producto.find({ id: { $in: ids } });
+
+        let total = 0;
+        const items = [];
+        for (const l of lineas) {
+            const prod = enBase.find((x) => x.id === l.id);
+            if (!prod) return res.status(400).json({ error: 'Carrito con productos inválidos' });
+            total += Number(prod.precio.replace(/[$.]/g, '')) * l.cantidad;
+            items.push({ producto: prod._id, cantidad: l.cantidad });
+        }
+        if (!total) return res.status(400).json({ error: 'Nose pudo calcular el total' });
         // 1. Referencia única para esta transacción
         const reference = `TS-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
         const amountInCents = Math.round(total * 100);
@@ -48,7 +70,7 @@ router.post('/firma', verificarToken, async (req, res) => {
         await Transaccion.create({
             wompiReference: reference, amountInCents, currency,
             status: 'PENDING',
-            pendingOrderData: { usuario: req.usuario.id, productos, total }
+            pendingOrderData: { usuario: req.usuario.id, productos: items, total }
         });
 
         // 4. Devolver datos al Widget de Wompi en el frontend

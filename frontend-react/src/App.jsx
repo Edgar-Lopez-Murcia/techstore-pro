@@ -9,6 +9,7 @@ import Contacto from "./pages/Contacto.jsx";
 import Login from "./pages/Login.jsx";
 import Registro from "./pages/Registro.jsx";
 import Carrito from "./pages/Carrito.jsx";
+import PagoResultado from './pages/PagoResultado.jsx';
 import NotFound from "./pages/NotFound.jsx";
 
 
@@ -28,6 +29,7 @@ function App() {
           <Route path="/login" element={<Login />}/>
           <Route path="/registro" element={<Registro />}/>
           <Route path="/carrito" element={<Carrito />}/>
+          <Route path="/pago/:referencia" element={<PagoResultado />}/>
           <Route path="*" element={<NotFound/>} />
         </Routes>
       </main>
