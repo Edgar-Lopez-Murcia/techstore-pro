@@ -53,13 +53,18 @@ function Navbar() {
         
                 {usuario ? (
                     <div className="hidden md:flex items-center gap-4">
-                    <span className="text-sm font-semibold">Hola, {usuario}</span>
-                    <button
-                        onClick={logout}
-                        className="text-sm text-gray-700 underline hover:text-ink transition-colors"
-                    >
-                        Salir
-                    </button>
+                        <Link
+                            to="/mis-pedidos"
+                            className="text-sm font-medium text-gray-700 hover:text-ink transition-colors">
+                                Mis pedidos
+                            </Link>
+                        <span className="text-sm font-semibold">Hola, {usuario}</span>
+                        <button
+                            onClick={logout}
+                            className="text-sm text-gray-700 underline hover:text-ink transition-colors"
+                        >
+                            Salir
+                        </button>
                     </div>
                 ) : (
                     <Link
@@ -104,7 +109,7 @@ function Navbar() {
             "md:hidden grid transition-[grid-template-rows] duration-300 ease-out " +
             (abierto ? "grid-rows-[1fr]" : "grid-rows-[0fr]")
             }
-        >
+            >
             <div className="overflow-hidden">
             <ul className="flex flex-col pt-6 pb-4">
                 {enlaces.map((enlace, i) => (
@@ -117,13 +122,13 @@ function Navbar() {
                     }
                 >
                     <NavLink
-                    to={enlace.ruta}
-                    end
-                    onClick={cerrar}
-                    className={({ isActive }) =>
-                        "block py-3 font-display font-semibold text-3xl tracking-tight " +
-                        (isActive ? "text-ink" : "text-gray-500")
-                    }
+                        to={enlace.ruta}
+                        end
+                        onClick={cerrar}
+                        className={({ isActive }) =>
+                            "block py-3 font-display font-semibold text-3xl tracking-tight " +
+                            (isActive ? "text-ink" : "text-gray-500")
+                        }
                     >
                     {enlace.texto}
                     </NavLink>
@@ -137,17 +142,27 @@ function Navbar() {
                 }
                 >
                 {usuario ? (
-                    <div className="flex items-center justify-between">
-                    <span className="text-sm font-semibold">Hola, {usuario}</span>
-                    <button
-                        onClick={() => {
-                        logout();
-                        cerrar();
-                        }}
-                        className="bg-ink text-paper px-6 py-3 rounded-card text-sm font-semibold"
-                    >
-                        Salir
-                    </button>
+                    <div className="flex flex-col gap-5">
+                        <Link
+                            to="/mis-pedidos"
+                            onClick={cerrar}
+                            className="font-display font-semibold text-3xl tracking-tight text-gray-500">
+                                Mis pedidos
+                            </Link>
+                    
+
+                            <div className="flex items-center justify-between">
+                            <span className="text-sm font-semibold">Hola, {usuario}</span>
+                            <button
+                                onClick={() => {
+                                logout();
+                                cerrar();
+                                }}
+                                className="bg-ink text-paper px-6 py-3 rounded-card text-sm font-semibold"
+                            >
+                                Salir
+                            </button>
+                            </div>
                     </div>
                 ) : (
                     <Link

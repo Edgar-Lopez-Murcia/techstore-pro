@@ -30,8 +30,8 @@ router.get('/', verificarToken, async (req, res) => {
     try{
         const ordenes = await Orden
             .find({ usuario: req.usuario.id })
-            .populate('usuario', 'nombre email')
-            .populate('productos.producto', 'nombre precio');
+            .populate('productos.producto', 'nombre precio imagen')
+            .sort({ createdAt: -1});;
         res.json(ordenes);
     } catch (err) {
         res.status(500).json({ error: err.message });
