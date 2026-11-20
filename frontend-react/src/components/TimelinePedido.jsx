@@ -1,4 +1,4 @@
-const PASOS = [
+export const PASOS = [
     { estado: "PAGO_CONFIRMADO", texto: "Pago confirmado"},
     { estado: "procesando", texto: "Procesando"},
     { estado: "enviado", texto: "Enviado"},
