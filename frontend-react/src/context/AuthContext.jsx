@@ -16,6 +16,11 @@ export function AuthProvider({ children }) {
         setRol(rolNuevo);
     }
 
+    function actualizarNombre(nombre) {
+        localStorage.setItem("usuario-nombre", nombre);
+        setUsuario(nombre);
+    }
+
     function logout() {
         localStorage.removeItem("token");
         localStorage.removeItem("usuario-nombre");
@@ -24,7 +29,7 @@ export function AuthProvider({ children }) {
         setRol(null);
     }
     return (
-        <AuthContext.Provider value={{ usuario, rol, login, logout}}>
+        <AuthContext.Provider value={{ usuario, rol, login, logout, actualizarNombre }}>
             {children} 
         </AuthContext.Provider>
     );

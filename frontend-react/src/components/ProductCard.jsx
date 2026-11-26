@@ -1,5 +1,6 @@
 import { useContext } from "react";
 import { CartContext } from "../context/CartContext.jsx";
+import BotonFavorito from "./BotonFavorito.jsx";
 
 function ProductCard(props) {
     const { agregarAlCarrito } = useContext(CartContext);
@@ -15,9 +16,10 @@ function ProductCard(props) {
     }
 
     return (
-        <article 
+        <article
         onClick={props.onVer}
-        className="group relative aspect-4/5 cursor-pointer overflow-hidden rounded-3xl bg-ink">
+        className="group relative aspect-4/5 cursor-pointer overflow-hidden rounded-3xl bg-ink"
+        >
         <img
             src={props.imagen.replace("w=400&h=250", "w=800&h=1000")}
             alt={props.nombre}
@@ -28,6 +30,11 @@ function ProductCard(props) {
         <span className="absolute top-4 left-4 bg-paper/90 text-ink rounded-full px-3 py-1.5 font-mono text-[11px] font-bold tracking-wider">
             REF {String(props.id).padStart(2, "0")}
         </span>
+
+        <BotonFavorito
+        producto={{ id: props.id, nombre: props.nombre, precio: props.precio, imagen: props.imagen }}
+        className="absolute top-4 right-4"
+        />
 
         <div className="absolute inset-x-5 bottom-5 flex flex-col gap-2.5 text-paper">
             <h3 className="font-display font-semibold text-xl leading-tight">
@@ -50,7 +57,4 @@ function ProductCard(props) {
         </article>
     );
 }
-
 export default ProductCard;
-
-

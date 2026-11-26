@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Campo, { claseInput } from "../components/Campo.jsx";
+import useColombia from "../hooks/useColombia.js";
 
 const URL_API = "http://localhost:3000/api/auth";
 const URL_COLOMBIA = "https://api-colombia.com/api/v1";
@@ -24,37 +25,11 @@ function Registro() {
     const [errores, setErrores] = useState({});
     const [estado, setEstado] = useState("inactivo");
     const [mensajeError, setMensajeError] = useState("");
-    const [departamentos, setDepartamentos] = useState([]);
-    const [municipios, setMunicipios] = useState([]);
+    const { departamentos, municipios } = useColombia(form.departamento);
 
     const elegido = departamentos.find((d) => d.name === form.departamento);
     const departamentoId = elegido ? elegido.id : null;
 
-    useEffect(() => {
-        fetch(URL_COLOMBIA + "/Department")
-            .then((res) => res.json())
-            .then((datos) => setDepartamentos(datos.sort(porNombre)))
-            .catch(() => setDepartamentos([]));
-    }, []);
-
-    useEffect(() => {
-        if (!departamentoId) {
-            setMunicipios([]);
-            return;
-        }
-        let vigente = true;
-        fetch(URL_COLOMBIA + "/Department/" + departamentoId + "/cities")
-            .then((res) => res.json())
-            .then((datos) => {
-                if (vigente) setMunicipios(datos.sort(porNombre));
-            })
-            .catch(() => {
-                if (vigente) setMunicipios([]);
-            });
-        return () => {
-            vigente = false;
-        };
-    }, [departamentoId]);
 
     function manejarCambio(e) {
         const { name, value } = e.target;
